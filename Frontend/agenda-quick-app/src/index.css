@@ -1,0 +1,54 @@
+/* ══════════════════════════════════════════════════════════════
+   AgendaQuick — Global Styles (CSS Variables & Reset)
+   Design dark-themed para sistema de agendamento cirúrgico.
+   ══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #0e0f14;
+  --surface: #16181f;
+  --surface2: #1e2029;
+  --border: #2a2d3a;
+  --text: #f0f1f6;
+  --muted: #6b7090;
+  --accent: #4f7cff;
+  --accent-glow: rgba(79,124,255,0.25);
+  --green: #22c55e;
+  --green-bg: rgba(34,197,94,0.15);
+  --yellow: #f59e0b;
+  --yellow-bg: rgba(245,158,11,0.15);
+  --blue: #3b82f6;
+  --blue-bg: rgba(59,130,246,0.15);
+  --gray-bg: rgba(107,114,128,0.2);
+  --red: #ef4444;
+  --radius: 12px;
+  --sidebar-width: 260px;
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+#root {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agenda Quick — Agendamento de Centros Cirúrgicos</title>
+  <meta name="description" content="Sistema de agendamento de centros cirúrgicos e reserva de insumos hospitalares.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ========================================================
+       RESET & VARIÁVEIS GLOBAIS
+       Normaliza os estilos padrão do navegador e define as
+       variáveis de cor (custom properties) que serão reutilizadas
+       em todo o sistema, garantindo consistência visual.
+       ======================================================== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #0B6CB4;
+      --primary-dark: #084E8A;
+      --primary-light: #4DA3E0;
+      --accent: #00C9A7;
+      --accent-dark: #00A88A;
+      --bg-body: #EFF4F9;
+      --bg-card: #FFFFFF;
+      --text-primary: #1A2A3A;
+      --text-secondary: #5A6D7E;
+      --text-muted: #8FA3B5;
+      --border: #D4DEE8;
+      --border-focus: var(--primary-light);
+      --danger: #E25B5B;
+      --success: #2ECC71;
+      --shadow-sm: 0 2px 8px rgba(11,108,180,0.06);
+      --shadow-md: 0 8px 30px rgba(11,108,180,0.10);
+      --shadow-lg: 0 16px 48px rgba(11,108,180,0.14);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    /* ========================================================
+       ANIMAÇÕES
+       Define as animações de entrada (fadeIn + slide) e o efeito
+       de pulso usado no ícone de sucesso da Tela 5.
+       ======================================================== */
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(24px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%      { transform: scale(1.05); }
+    }
+
+    @keyframes checkPop {
+      0%   { transform: scale(0) rotate(-45deg); opacity: 0; }
+      60%  { transform: scale(1.2) rotate(0deg); opacity: 1; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    /* ========================================================
+       CLASSES UTILITÁRIAS DAS TELAS
+       Cada tela (.screen) ocupa toda a largura disponível e
+       inicia oculta (display:none). Somente a tela com a classe
+       .active é exibida com a animação de entrada.
+       ======================================================== */
+    .screen {
+      display: none;
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    .screen.active {
+      display: block;
+      animation: fadeSlideIn 0.45s ease-out;
+    }
+
+    /* O Dashboard precisa de mais espaço por conter o calendário */
+    .screen.screen-wide {
+      max-width: 720px;
+    }
+
+    /* ========================================================
+       CARD — CONTAINER PRINCIPAL
+       Cartão branco que envolve o conteúdo de cada tela.
+       Utiliza glassmorphism sutil (backdrop-filter) e sombra
+       para dar profundidade e modernidade ao layout.
+       ======================================================== */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 44px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 5px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+    }
+
+    @media (max-width: 560px) {
+      .card { padding: 32px 22px; }
+    }
+
+    /* ========================================================
+       LOGO / HEADER
+       Bloco de cabeçalho com ícone SVG e título do sistema.
+       ======================================================== */
+    .logo-block {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: var(--radius-md);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 16px rgba(0,201,167,0.25);
+    }
+
+    .logo-icon svg {
+      width: 30px;
+      height: 30px;
+      fill: #fff;
+    }
+
+    .logo-block h1 {
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+    }
+
+    .logo-block h1 span {
+      color: var(--primary);
+    }
+
+    .logo-block p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ========================================================
+       PAGE HEADER — TELAS INTERNAS
+       Cabeçalho simplificado para as telas 2 a 5.
+       ======================================================== */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .page-header .icon-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .page-header .icon-circle svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
+    }
+
+    .page-header h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .page-header p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ========================================================
+       FORMULÁRIOS E INPUTS
+       Estilos dos campos de entrada, labels e grupos de campos.
+       O efeito de foco (focus) destaca o campo ativo com a cor
+       primária.
+       ======================================================== */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--text-primary);
+      background: var(--bg-body);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      outline: none;
+    }
+
+    .form-group input::placeholder { color: var(--text-muted); }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 4px rgba(77,163,224,0.15);
+      background: #fff;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    /* ========================================================
+       SEPARADOR "OU"
+       Linha decorativa com texto central, usada na Tela de Login
+       para separar opções de autenticação.
+       ======================================================== */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 22px 0;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ========================================================
+       BOTÕES
+       Sistema de botões com variantes: primário (preenchido),
+       secundário (contorno), SSO (Microsoft) e botão de voltar.
+       ======================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 13px 24px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--transition);
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(11,108,180,0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(11,108,180,0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--primary);
+      border: 2px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary-light);
+      background: rgba(11,108,180,0.04);
+    }
+
+    .btn-sso {
+      background: #2F2F2F;
+      color: #fff;
+    }
+
+    .btn-sso:hover {
+      background: #1a1a1a;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+    }
+
+    .btn-sso svg { width: 18px; height: 18px; fill: #fff; }
+
+    .btn-back {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 0;
+      transition: color var(--transition);
+      font-family: inherit;
+    }
+
+    .btn-back:hover { color: var(--primary); }
+
+    .btn-back svg { width: 16px; height: 16px; fill: currentColor; }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    /* ========================================================
+       DASHBOARD — GRID DE CARDS
+       Layout em grid para as opções do painel principal (Tela 2).
+       ======================================================== */
+    .dashboard-greeting {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dashboard-greeting strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+
+    @media (max-width: 480px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    .dash-card {
+      background: var(--bg-body);
+      border: 2px solid transparent;
+      border-radius: var(--radius-md);
+      padding: 22px 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .dash-card:hover {
+      border-color: var(--primary-light);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .dash-card .dash-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .dash-card .dash-icon svg {
+      width: 22px;
+      height: 22px;
+      fill: #fff;
+    }
+
+    .dash-card h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .dash-card p {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .color-blue   { background: linear-gradient(135deg, var(--primary), var(--primary-light)); }
+    .color-green  { background: linear-gradient(135deg, var(--accent), var(--accent-dark)); }
+    .color-orange { background: linear-gradient(135deg, #F5A623, #E8961C); }
+    .color-purple { background: linear-gradient(135deg, #7C5CFC, #6342E8); }
+
+    /* ========================================================
+       CALENDÁRIO VISUAL — DASHBOARD
+       Calendário mensal interativo com navegação entre meses.
+       Dias com agendamentos recebem indicadores coloridos.
+       ======================================================== */
+    .calendar-section {
+      margin: 24px 0;
+    }
+
+    .calendar-section-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+    }
+
+    .calendar-container {
+      background: var(--bg-body);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .calendar-header h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .calendar-nav {
+      display: flex;
+      gap: 6px;
+    }
+
+    .calendar-nav button {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      color: var(--text-secondary);
+    }
+
+    .calendar-nav button:hover {
+      border-color: var(--primary-light);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .calendar-nav button svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-bottom: 6px;
+    }
+
+    .calendar-weekdays span {
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      padding: 6px 0;
+    }
+
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      cursor: default;
+      position: relative;
+      transition: all var(--transition);
+      min-height: 40px;
+    }
+
+    .calendar-day.empty {
+      background: transparent;
+    }
+
+    .calendar-day.today {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(11,108,180,0.3);
+    }
+
+    .calendar-day.has-event {
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .calendar-day.has-event:hover {
+      background: rgba(11,108,180,0.08);
+      border-radius: 50%;
+    }
+
+    .calendar-day.today.has-event:hover {
+      background: var(--primary-dark);
+    }
+
+    .event-dots {
+      display: flex;
+      gap: 3px;
+      margin-top: 2px;
+      position: absolute;
+      bottom: 3px;
+    }
+
+    .event-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+
+    .event-dot.dot-blue    { background: var(--primary); }
+    .event-dot.dot-green   { background: var(--accent); }
+    .event-dot.dot-orange  { background: #F5A623; }
+
+    .calendar-day.today .event-dot { background: #fff; }
+
+    /* Lista de agendamentos do dia selecionado */
+    .day-events {
+      margin-top: 14px;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+
+    .day-events-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .event-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg-card);
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      border-left: 3px solid var(--primary);
+      transition: all var(--transition);
+    }
+
+    .event-item:hover {
+      box-shadow: var(--shadow-sm);
+      transform: translateX(3px);
+    }
+
+    .event-item.event-green  { border-left-color: var(--accent); }
+    .event-item.event-orange { border-left-color: #F5A623; }
+
+    .event-time {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .event-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .event-name {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .event-detail {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .no-events {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      padding: 16px 0;
+    }
+
+    /* ========================================================
+       STATS BAR — INDICADORES RÁPIDOS (DASHBOARD)
+       Barra de estatísticas exibida no rodapé do Dashboard.
+       ======================================================== */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .stat-item {
+      text-align: center;
+      padding: 14px 8px;
+      background: var(--bg-body);
+      border-radius: var(--radius-sm);
+    }
+
+    .stat-item .stat-number {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat-item .stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* ========================================================
+       TELA DE CONFIRMAÇÃO — SUCESSO
+       Layout centralizado com ícone animado de sucesso.
+       ======================================================== */
+    .success-block {
+      text-align: center;
+      padding: 20px 0 10px;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 22px;
+      box-shadow: 0 8px 28px rgba(0,201,167,0.3);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .success-icon svg {
+      width: 38px;
+      height: 38px;
+      fill: #fff;
+      animation: checkPop 0.6s ease-out 0.3s both;
+    }
+
+    .success-block h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+
+    .success-block p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .summary-box {
+      background: var(--bg-body);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      margin: 20px 0;
+      text-align: left;
+    }
+
+    .summary-box .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 7px 0;
+      font-size: 0.84rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .summary-box .summary-row:last-child { border-bottom: none; }
+
+    .summary-box .summary-row span:first-child {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .summary-box .summary-row span:last-child {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* ========================================================
+       RODAPÉ
+       Texto discreto no rodapé de cada tela.
+       ======================================================== */
+    .footer-text {
+      text-align: center;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      margin-top: 22px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ====================================================
+       TELA 1 — LOGIN
+       Formulário de autenticação com duas opções:
+       SSO (Single Sign-On) corporativo e login local.
+       ==================================================== -->
+  <div id="screen-login" class="screen active">
+    <div class="card">
+      <div class="logo-block">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10a4 4 0 100 8 4 4 0 000-8zm1 6h-2V9h2v4z"/></svg>
+        </div>
+        <h1>Agenda <span>Quick</span></h1>
+        <p>Agendamento Inteligente de Centros Cirúrgicos</p>
+      </div>
+
+      <button id="btn-sso" class="btn btn-sso" onclick="navigateTo('screen-dashboard')">
+        <svg viewBox="0 0 21 21"><path d="M0 0h10v10H0zM11 0h10v10H11zM0 11h10v10H0zM11 11h10v10H11z"/></svg>
+        Entrar com SSO Corporativo
+      </button>
+
+      <div class="divider">ou</div>
+
+      <form id="login-form" onsubmit="return handleLogin(event)">
+        <div class="form-group">
+          <label for="login-user">Usuário</label>
+          <input type="text" id="login-user" placeholder="seu.usuario@hospital.com">
+        </div>
+        <div class="form-group">
+          <label for="login-pass">Senha</label>
+          <input type="password" id="login-pass" placeholder="••••••••">
+        </div>
+        <button type="submit" id="btn-login" class="btn btn-primary">Entrar</button>
+      </form>
+
+      <p class="footer-text">Agenda Quick v1.0 &mdash; Projeto Integrador 2026</p>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       TELA 2 — DASHBOARD
+       Painel principal com atalhos de navegação, calendário
+       visual de agendamentos e indicadores rápidos.
+       ==================================================== -->
+  <div id="screen-dashboard" class="screen screen-wide">
+    <div class="card">
+      <div class="page-header">
+        <div class="icon-circle">
+          <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        </div>
+        <div>
+          <h2>Painel Principal</h2>
+          <p>Bem-vindo(a) ao Agenda Quick</p>
+        </div>
+      </div>
+
+      <p class="dashboard-greeting">Olá, <strong>Dr(a). Usuário</strong>. Selecione uma ação para continuar:</p>
+
+      <div class="dashboard-grid">
+        <div class="dash-card" id="btn-new-patient" onclick="navigateTo('screen-patient')">
+          <div class="dash-icon color-green">
+            <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          </div>
+          <h3>Novo Paciente</h3>
+          <p>Cadastrar paciente</p>
+        </div>
+        <div class="dash-card" id="btn-schedule" onclick="navigateTo('screen-schedule')">
+          <div class="dash-icon color-blue">
+            <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>
+          </div>
+          <h3>Agendar Cirurgia</h3>
+          <p>Reservar sala e insumos</p>
+        </div>
+        <div class="dash-card">
+          <div class="dash-icon color-orange">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zm-3 10v3H8v-3H5l4.5-4.5L14 14h-3z"/></svg>
+          </div>
+          <h3>Relatórios</h3>
+          <p>Dados e estatísticas</p>
+        </div>
+        <div class="dash-card">
+          <div class="dash-icon color-purple">
+            <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          </div>
+          <h3>Suporte</h3>
+          <p>Ajuda e tutoriais</p>
+        </div>
+      </div>
+
+      <!-- ================================================
+           CALENDÁRIO VISUAL DE AGENDAMENTOS
+           Calendário mensal gerado dinamicamente via JS.
+           Mostra indicadores (dots) nos dias que possuem
+           cirurgias agendadas. Clicável para ver detalhes.
+           ================================================ -->
+      <div class="calendar-section">
+        <div class="calendar-section-title">📅 Calendário de Agendamentos</div>
+        <div class="calendar-container">
+          <div class="calendar-header">
+            <h3 id="calendar-month-year"></h3>
+            <div class="calendar-nav">
+              <button id="btn-prev-month" onclick="changeMonth(-1)" aria-label="Mês anterior">
+                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+              </button>
+              <button id="btn-next-month" onclick="changeMonth(1)" aria-label="Próximo mês">
+                <svg viewBox="0 0 24 24"><path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="calendar-weekdays">
+            <span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span>
+          </div>
+          <div class="calendar-days" id="calendar-days"></div>
+          <div id="day-events-panel"></div>
+        </div>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-number" id="stat-today">0</div>
+          <div class="stat-label">Agendamentos Hoje</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">5</div>
+          <div class="stat-label">Salas Livres</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">98%</div>
+          <div class="stat-label">Insumos OK</div>
+        </div>
+      </div>
+
+      <p class="footer-text">Agenda Quick v1.0 &mdash; Centro Cirúrgico</p>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       TELA 3 — CADASTRO DE PACIENTE
+       Formulário para registrar os dados básicos do paciente.
+       ==================================================== -->
+  <div id="screen-patient" class="screen">
+    <div class="card">
+      <button class="btn-back" onclick="navigateTo('screen-dashboard')">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        Voltar ao Painel
+      </button>
+
+      <div class="page-header">
+        <div class="icon-circle" style="background:linear-gradient(135deg,var(--accent),var(--accent-dark))">
+          <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        </div>
+        <div>
+          <h2>Cadastro de Paciente</h2>
+          <p>Preencha os dados do paciente</p>
+        </div>
+      </div>
+
+      <form id="patient-form" onsubmit="return handlePatient(event)">
+        <div class="form-group">
+          <label for="patient-name">Nome Completo</label>
+          <input type="text" id="patient-name" placeholder="Maria da Silva Santos">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="patient-cpf">CPF</label>
+            <input type="text" id="patient-cpf" placeholder="000.000.000-00" maxlength="14">
+          </div>
+          <div class="form-group">
+            <label for="patient-email">E-mail</label>
+            <input type="email" id="patient-email" placeholder="paciente@email.com">
+          </div>
+        </div>
+        <div class="btn-group">
+          <button type="submit" id="btn-save-patient" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+            Salvar e Continuar
+          </button>
+        </div>
+      </form>
+
+      <p class="footer-text">Os dados serão salvos com segurança (LGPD)</p>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       TELA 4 — AGENDAMENTO DE CIRURGIA
+       Formulário para selecionar paciente, sala cirúrgica
+       e data/hora do procedimento.
+       ==================================================== -->
+  <div id="screen-schedule" class="screen">
+    <div class="card">
+      <button class="btn-back" onclick="navigateTo('screen-dashboard')">
+        <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+        Voltar ao Painel
+      </button>
+
+      <div class="page-header">
+        <div class="icon-circle">
+          <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>
+        </div>
+        <div>
+          <h2>Agendar Cirurgia</h2>
+          <p>Reserve sala e insumos</p>
+        </div>
+      </div>
+
+      <form id="schedule-form" onsubmit="return handleSchedule(event)">
+        <div class="form-group">
+          <label for="sched-patient">Paciente</label>
+          <select id="sched-patient">
+            <option value="">Selecione o paciente...</option>
+            <option value="Maria da Silva Santos">Maria da Silva Santos</option>
+            <option value="João Pedro Oliveira">João Pedro Oliveira</option>
+            <option value="Ana Clara Mendes">Ana Clara Mendes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="sched-room">Sala Cirúrgica</label>
+          <select id="sched-room">
+            <option value="">Selecione a sala...</option>
+            <option value="Sala 01 — Cirurgia Geral">Sala 01 — Cirurgia Geral</option>
+            <option value="Sala 02 — Ortopedia">Sala 02 — Ortopedia</option>
+            <option value="Sala 03 — Cardiologia">Sala 03 — Cardiologia</option>
+            <option value="Sala 04 — Neurologia">Sala 04 — Neurologia</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="sched-date">Data</label>
+            <input type="date" id="sched-date">
+          </div>
+          <div class="form-group">
+            <label for="sched-time">Horário</label>
+            <input type="time" id="sched-time">
+          </div>
+        </div>
+        <div class="btn-group">
+          <button type="submit" id="btn-confirm-schedule" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+            Confirmar Agendamento
+          </button>
+        </div>
+      </form>
+
+      <p class="footer-text">Insumos serão reservados automaticamente</p>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       TELA 5 — CONFIRMAÇÃO DE AGENDAMENTO
+       Mensagem de sucesso com resumo da reserva realizada.
+       ==================================================== -->
+  <div id="screen-confirm" class="screen">
+    <div class="card">
+      <div class="success-block">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+        </div>
+        <h2>Agendamento Confirmado!</h2>
+        <p>A sala cirúrgica e os insumos necessários foram reservados com sucesso no sistema.</p>
+      </div>
+
+      <div class="summary-box" id="summary-box">
+        <div class="summary-row">
+          <span>Paciente</span>
+          <span id="sum-patient">—</span>
+        </div>
+        <div class="summary-row">
+          <span>Sala</span>
+          <span id="sum-room">—</span>
+        </div>
+        <div class="summary-row">
+          <span>Data</span>
+          <span id="sum-date">—</span>
+        </div>
+        <div class="summary-row">
+          <span>Horário</span>
+          <span id="sum-time">—</span>
+        </div>
+        <div class="summary-row">
+          <span>Insumos</span>
+          <span style="color:var(--accent)">✓ Reservados</span>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button id="btn-back-home" class="btn btn-primary" onclick="navigateTo('screen-dashboard')">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          Voltar ao Início
+        </button>
+      </div>
+
+      <p class="footer-text">Protocolo nº <span id="protocol-number">—</span></p>
+    </div>
+  </div>
+
+  <!-- ====================================================
+       JAVASCRIPT — LÓGICA DE NAVEGAÇÃO, CALENDÁRIO E INTERAÇÃO
+       Controla a troca de telas (SPA), validações básicas,
+       calendário visual e preenchimento dinâmico do resumo.
+       ==================================================== -->
+  <script>
+    /* ===========================================================
+       1. DADOS DE AGENDAMENTOS (SIMULAÇÃO)
+       Na prática esses dados viriam de um backend/API.
+       Aqui usamos um array que é alimentado ao confirmar
+       agendamentos e já vem com dados de exemplo.
+       =========================================================== */
+    var today = new Date();
+    var currentYear  = today.getFullYear();
+    var currentMonth = today.getMonth(); // 0-11
+
+    /**
+     * Gera uma chave no formato "YYYY-MM-DD" a partir de ano, mês e dia.
+     * Usada como índice para agrupar agendamentos por data.
+     */
+    function dateKey(y, m, d) {
+      return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    }
+
+    // Dados de exemplo: agendamentos pré-cadastrados no mês corrente
+    var appointments = [
+      { date: dateKey(currentYear, currentMonth, today.getDate()),     time: '07:30', patient: 'Maria da Silva Santos', room: 'Sala 01 — Cirurgia Geral',  color: 'blue'   },
+      { date: dateKey(currentYear, currentMonth, today.getDate()),     time: '10:00', patient: 'João Pedro Oliveira',   room: 'Sala 03 — Cardiologia',     color: 'green'  },
+      { date: dateKey(currentYear, currentMonth, today.getDate()),     time: '14:00', patient: 'Ana Clara Mendes',      room: 'Sala 02 — Ortopedia',       color: 'orange' },
+      { date: dateKey(currentYear, currentMonth, Math.min(today.getDate() + 2, 28)), time: '08:00', patient: 'Carlos Eduardo Lima', room: 'Sala 04 — Neurologia',  color: 'blue'   },
+      { date: dateKey(currentYear, currentMonth, Math.min(today.getDate() + 2, 28)), time: '13:30', patient: 'Fernanda Costa',      room: 'Sala 01 — Cirurgia Geral', color: 'green' },
+      { date: dateKey(currentYear, currentMonth, Math.min(today.getDate() + 5, 28)), time: '09:00', patient: 'Roberto Almeida',     room: 'Sala 02 — Ortopedia',    color: 'orange' },
+      { date: dateKey(currentYear, currentMonth, Math.min(today.getDate() + 8, 28)), time: '11:00', patient: 'Luciana Martins',     room: 'Sala 03 — Cardiologia',  color: 'blue'   },
+      { date: dateKey(currentYear, currentMonth, Math.min(today.getDate() + 8, 28)), time: '15:00', patient: 'Paulo Henrique Dias', room: 'Sala 04 — Neurologia',  color: 'green'  },
+      { date: dateKey(currentYear, currentMonth, Math.max(today.getDate() - 3, 1)),  time: '08:30', patient: 'Juliana Ferreira',    room: 'Sala 01 — Cirurgia Geral', color: 'blue'  },
+      { date: dateKey(currentYear, currentMonth, Math.max(today.getDate() - 1, 1)),  time: '10:30', patient: 'Marcos Vinícius',     room: 'Sala 02 — Ortopedia',    color: 'orange' }
+    ];
+
+    /* ===========================================================
+       2. ESTADO DO CALENDÁRIO
+       Variáveis para controlar qual mês está sendo exibido
+       e qual dia está selecionado.
+       =========================================================== */
+    var calViewYear  = currentYear;
+    var calViewMonth = currentMonth;
+    var selectedDate = null;
+
+    /* Nomes dos meses em português */
+    var monthNames = [
+      'Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+      'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'
+    ];
+
+    /* ===========================================================
+       3. FUNÇÕES DO CALENDÁRIO
+       =========================================================== */
+
+    /**
+     * renderCalendar()
+     * -----------------
+     * Constrói e exibe o calendário do mês armazenado em
+     * calViewYear / calViewMonth. Cada dia é renderizado como
+     * uma div dentro do grid. Dias com agendamentos recebem
+     * bolinhas coloridas (event-dots).
+     */
+    function renderCalendar() {
+      var header = document.getElementById('calendar-month-year');
+      header.textContent = monthNames[calViewMonth] + ' ' + calViewYear;
+
+      var container = document.getElementById('calendar-days');
+      container.innerHTML = '';
+
+      // Primeiro dia do mês (0=Dom, 1=Seg, ...)
+      var firstDay   = new Date(calViewYear, calViewMonth, 1).getDay();
+      // Quantidade de dias no mês
+      var daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+
+      // Células vazias antes do dia 1
+      for (var e = 0; e < firstDay; e++) {
+        var emptyDiv = document.createElement('div');
+        emptyDiv.className = 'calendar-day empty';
+        container.appendChild(emptyDiv);
+      }
+
+      // Células de cada dia do mês
+      for (var d = 1; d <= daysInMonth; d++) {
+        var dayDiv = document.createElement('div');
+        dayDiv.className = 'calendar-day';
+
+        var key = dateKey(calViewYear, calViewMonth, d);
+
+        // Verifica se é o dia de hoje
+        if (calViewYear === currentYear && calViewMonth === currentMonth && d === today.getDate()) {
+          dayDiv.classList.add('today');
+        }
+
+        // Busca agendamentos deste dia
+        var dayAppts = appointments.filter(function(a) { return a.date === key; });
+
+        if (dayAppts.length > 0) {
+          dayDiv.classList.add('has-event');
+
+          // Cria as bolinhas indicadoras (máximo 3)
+          var dotsDiv = document.createElement('div');
+          dotsDiv.className = 'event-dots';
+          for (var i = 0; i < Math.min(dayAppts.length, 3); i++) {
+            var dot = document.createElement('span');
+            dot.className = 'event-dot dot-' + dayAppts[i].color;
+            dotsDiv.appendChild(dot);
+          }
+          dayDiv.appendChild(document.createTextNode(d));
+          dayDiv.appendChild(dotsDiv);
+
+          // Adiciona evento de clique para mostrar detalhes do dia
+          (function(clickKey, clickDay) {
+            dayDiv.addEventListener('click', function() {
+              showDayEvents(clickKey, clickDay);
+            });
+          })(key, d);
+        } else {
+          dayDiv.textContent = d;
+        }
+
+        container.appendChild(dayDiv);
+      }
+
+      // Atualiza o painel de eventos se havia um dia selecionado
+      if (selectedDate) {
+        var selParts = selectedDate.split('-');
+        if (parseInt(selParts[0]) === calViewYear && parseInt(selParts[1]) - 1 === calViewMonth) {
+          showDayEvents(selectedDate, parseInt(selParts[2]));
+        } else {
+          document.getElementById('day-events-panel').innerHTML = '';
+          selectedDate = null;
+        }
+      }
+
+      // Atualiza contador de hoje
+      updateTodayCount();
+    }
+
+    /**
+     * changeMonth(delta)
+     * -------------------
+     * Avança ou retrocede o mês exibido no calendário.
+     * @param {number} delta - +1 para avançar, -1 para retroceder.
+     */
+    function changeMonth(delta) {
+      calViewMonth += delta;
+      if (calViewMonth > 11) {
+        calViewMonth = 0;
+        calViewYear++;
+      } else if (calViewMonth < 0) {
+        calViewMonth = 11;
+        calViewYear--;
+      }
+      selectedDate = null;
+      document.getElementById('day-events-panel').innerHTML = '';
+      renderCalendar();
+    }
+
+    /**
+     * showDayEvents(key, day)
+     * -----------------------
+     * Exibe a lista de agendamentos de um dia específico
+     * abaixo do calendário, no painel day-events-panel.
+     *
+     * @param {string} key - Chave da data no formato "YYYY-MM-DD".
+     * @param {number} day - Número do dia clicado.
+     */
+    function showDayEvents(key, day) {
+      selectedDate = key;
+      var panel = document.getElementById('day-events-panel');
+      var dayAppts = appointments.filter(function(a) { return a.date === key; });
+
+      if (dayAppts.length === 0) {
+        panel.innerHTML = '<div class="day-events"><p class="no-events">Nenhum agendamento para este dia.</p></div>';
+        return;
+      }
+
+      // Ordena por horário
+      dayAppts.sort(function(a, b) { return a.time.localeCompare(b.time); });
+
+      var html = '<div class="day-events">';
+      html += '<div class="day-events-title">Agendamentos — ' + day + ' de ' + monthNames[calViewMonth] + '</div>';
+
+      for (var i = 0; i < dayAppts.length; i++) {
+        var a = dayAppts[i];
+        var colorClass = a.color === 'green' ? 'event-green' : (a.color === 'orange' ? 'event-orange' : '');
+        html += '<div class="event-item ' + colorClass + '">';
+        html += '  <span class="event-time">' + a.time + '</span>';
+        html += '  <div class="event-info">';
+        html += '    <div class="event-name">' + a.patient + '</div>';
+        html += '    <div class="event-detail">' + a.room + '</div>';
+        html += '  </div>';
+        html += '</div>';
+      }
+
+      html += '</div>';
+      panel.innerHTML = html;
+    }
+
+    /**
+     * updateTodayCount()
+     * -------------------
+     * Atualiza o contador de agendamentos de hoje na stats-bar.
+     */
+    function updateTodayCount() {
+      var todayKey = dateKey(currentYear, currentMonth, today.getDate());
+      var count = appointments.filter(function(a) { return a.date === todayKey; }).length;
+      document.getElementById('stat-today').textContent = count;
+    }
+
+    /* ===========================================================
+       4. NAVEGAÇÃO SPA
+       =========================================================== */
+
+    /**
+     * navigateTo(screenId)
+     * ---------------------
+     * Função central de navegação da SPA.
+     * Recebe o ID da tela de destino, oculta todas as telas
+     * removendo a classe "active" e exibe somente a tela
+     * desejada adicionando a classe "active".
+     *
+     * @param {string} screenId - O id do elemento <div> da tela destino.
+     */
+    function navigateTo(screenId) {
+      // 1. Seleciona todas as divs com a classe "screen"
+      var screens = document.querySelectorAll('.screen');
+
+      // 2. Remove a classe "active" de cada uma (oculta todas)
+      screens.forEach(function(screen) {
+        screen.classList.remove('active');
+      });
+
+      // 3. Adiciona a classe "active" apenas na tela de destino
+      var target = document.getElementById(screenId);
+      if (target) {
+        target.classList.add('active');
+      }
+
+      // 4. Se é o dashboard, re-renderiza o calendário (pode ter novos agendamentos)
+      if (screenId === 'screen-dashboard') {
+        renderCalendar();
+      }
+
+      // 5. Rola a página para o topo
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ===========================================================
+       5. HANDLERS DOS FORMULÁRIOS
+       =========================================================== */
+
+    /**
+     * handleLogin(event)
+     * -------------------
+     * Trata o envio do formulário de login (Tela 1).
+     * Previne o comportamento padrão do formulário (recarregar
+     * a página) e navega para o Dashboard (Tela 2).
+     */
+    function handleLogin(event) {
+      event.preventDefault();
+      navigateTo('screen-dashboard');
+      return false;
+    }
+
+    /**
+     * handlePatient(event)
+     * ---------------------
+     * Trata o envio do formulário de Cadastro de Paciente (Tela 3).
+     * Após "salvar", direciona para o Agendamento (Tela 4).
+     * O nome cadastrado é adicionado dinamicamente ao select de
+     * pacientes na tela de agendamento, simulando persistência.
+     */
+    function handlePatient(event) {
+      event.preventDefault();
+
+      var patientName = document.getElementById('patient-name').value.trim();
+
+      if (patientName) {
+        var select = document.getElementById('sched-patient');
+        var option = document.createElement('option');
+        option.value = patientName;
+        option.textContent = patientName;
+        select.appendChild(option);
+        select.value = patientName;
+      }
+
+      navigateTo('screen-schedule');
+      return false;
+    }
+
+    /**
+     * handleSchedule(event)
+     * ----------------------
+     * Trata o envio do formulário de Agendamento (Tela 4).
+     * Coleta os dados selecionados, preenche o resumo na Tela 5,
+     * e ADICIONA o novo agendamento ao array de appointments
+     * para que ele apareça no calendário ao retornar ao Dashboard.
+     */
+    function handleSchedule(event) {
+      event.preventDefault();
+
+      var patient = document.getElementById('sched-patient').value;
+      var room    = document.getElementById('sched-room').value;
+      var date    = document.getElementById('sched-date').value;
+      var time    = document.getElementById('sched-time').value;
+
+      // Preenche o resumo na Tela 5
+      document.getElementById('sum-patient').textContent = patient || '—';
+      document.getElementById('sum-room').textContent    = room    || '—';
+      document.getElementById('sum-time').textContent    = time    || '—';
+
+      if (date) {
+        var parts = date.split('-');
+        document.getElementById('sum-date').textContent = parts[2] + '/' + parts[1] + '/' + parts[0];
+      } else {
+        document.getElementById('sum-date').textContent = '—';
+      }
+
+      // Gera protocolo fictício
+      var protocol = 'AQ-' + Date.now().toString().slice(-8);
+      document.getElementById('protocol-number').textContent = protocol;
+
+      // Adiciona o agendamento ao array para refletir no calendário
+      if (date && patient && room) {
+        var colors = ['blue', 'green', 'orange'];
+        appointments.push({
+          date: date,
+          time: time || '08:00',
+          patient: patient,
+          room: room,
+          color: colors[appointments.length % 3]
+        });
+      }
+
+      navigateTo('screen-confirm');
+      return false;
+    }
+
+    /* ===========================================================
+       6. INICIALIZAÇÃO
+       Renderiza o calendário ao carregar a página.
+       =========================================================== */
+    renderCalendar();
+  </script>
+</body>
+</html>

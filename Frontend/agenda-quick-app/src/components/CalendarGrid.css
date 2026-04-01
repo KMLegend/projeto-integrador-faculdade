@@ -1,0 +1,88 @@
+/* CalendarGrid.css */
+.agenda-section {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; display: flex; flex-direction: column;
+  flex: 1; min-height: 0; animation: fadeUp .5s ease .3s both;
+}
+.agenda-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.agenda-title-row { flex: 1; }
+.agenda-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; }
+.agenda-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.view-toggle {
+  display: flex; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+}
+.view-btn {
+  padding: 7px 16px; font-size: 13px; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-weight: 500;
+  color: var(--muted); border: none; background: none; transition: all .2s;
+}
+.view-btn.active { background: var(--accent); color: #fff; }
+.nav-arrows { display: flex; gap: 6px; }
+.arrow-btn {
+  width: 32px; height: 32px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 14px; color: var(--muted); transition: all .2s;
+}
+.arrow-btn:hover { background: #252835; color: var(--text); }
+
+.calendar-wrap { flex: 1; overflow: auto; }
+.calendar {
+  display: grid; grid-template-columns: 64px repeat(7, 1fr); min-width: 800px;
+}
+.cal-header-cell {
+  padding: 10px 6px; text-align: center; font-size: 12px; font-weight: 600;
+  border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
+  background: var(--surface2); position: sticky; top: 0; z-index: 2;
+}
+.cal-header-cell .day-name {
+  color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .06em;
+}
+.cal-header-cell .day-num {
+  font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-top: 2px;
+}
+.cal-header-cell.today .day-num {
+  background: var(--accent); color: #fff;
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 2px auto 0;
+}
+.time-cell {
+  padding: 0 8px; font-size: 11px; color: var(--muted);
+  text-align: right; border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border); height: 80px;
+  display: flex; align-items: flex-start; padding-top: 6px; font-weight: 500;
+}
+.slot {
+  border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  height: 80px; padding: 4px; position: relative; cursor: pointer; transition: background .15s;
+}
+.slot:hover { background: rgba(79,124,255,.05); }
+.slot.empty:hover::after {
+  content: '+'; position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: var(--accent); opacity: .5;
+}
+.appt {
+  border-radius: 8px; padding: 6px 8px; height: 100%;
+  display: flex; flex-direction: column; gap: 2px;
+  cursor: pointer; transition: filter .15s, transform .15s; overflow: hidden;
+}
+.appt:hover { filter: brightness(1.1); transform: scale(1.01); }
+.appt.green  { background: var(--green-bg);  border-left: 3px solid var(--green); }
+.appt.yellow { background: var(--yellow-bg); border-left: 3px solid var(--yellow); }
+.appt.blue   { background: var(--blue-bg);   border-left: 3px solid var(--blue); }
+.appt.gray   { background: var(--gray-bg);   border-left: 3px solid #4b5563; }
+.appt-status { font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.appt.green  .appt-status { color: var(--green); }
+.appt.yellow .appt-status { color: var(--yellow); }
+.appt.blue   .appt-status { color: var(--blue); }
+.appt.gray   .appt-status { color: #9ca3af; }
+.appt-service { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.2; }
+.appt-client  { font-size: 10px; color: var(--muted); }
+.appt-time    { font-size: 9px; color: var(--muted); margin-top: auto; }
+.appt.search-dim { opacity: 0.2; }

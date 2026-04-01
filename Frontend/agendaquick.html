@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgendaQuick – Agendamento de Centros Cirúrgicos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f14; --surface: #16181f; --surface2: #1e2029; --border: #2a2d3a;
+    --text: #f0f1f6; --muted: #6b7090;
+    --accent: #4f7cff; --accent-glow: rgba(79,124,255,0.25);
+    --green: #22c55e; --green-bg: rgba(34,197,94,0.15);
+    --yellow: #f59e0b; --yellow-bg: rgba(245,158,11,0.15);
+    --blue: #3b82f6; --blue-bg: rgba(59,130,246,0.15);
+    --gray-bg: rgba(107,114,128,0.2);
+    --red: #ef4444; --radius: 12px; --sidebar: 260px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); display:flex; height:100vh; overflow:hidden; }
+
+  /* SIDEBAR */
+  .sidebar { width:var(--sidebar); background:var(--surface); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; overflow-y:auto; }
+  .logo { padding:24px 20px 20px; font-family:'Syne',sans-serif; font-size:20px; font-weight:800; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--border); }
+  .logo-icon { font-size:22px; }
+  .logo span { color:var(--accent); }
+  .filial-select { margin:16px 12px 0; }
+  .filial-select label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); display:block; margin-bottom:4px; padding-left:4px; }
+  .filial-select select { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 12px; color:var(--text); font-size:12px; font-family:'DM Sans',sans-serif; outline:none; }
+  .filial-select select:focus { border-color:var(--accent); }
+  .filial-select select option { background:var(--surface); }
+  .profile-card { margin:16px 12px; background:var(--surface2); border-radius:var(--radius); padding:12px 14px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:background .2s; border:1px solid var(--border); }
+  .profile-card:hover { background:#252835; }
+  .avatar { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#4f7cff,#a855f7); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#fff; flex-shrink:0; }
+  .profile-info { flex:1; }
+  .profile-name { font-size:13px; font-weight:600; }
+  .profile-role { font-size:11px; color:var(--muted); }
+  .chevron { color:var(--muted); font-size:12px; }
+  .nav-label { font-size:10px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding:12px 20px 6px; }
+  .nav-item { display:flex; align-items:center; gap:12px; padding:10px 16px; margin:2px 8px; border-radius:10px; cursor:pointer; color:var(--muted); font-size:14px; font-weight:500; transition:all .2s; text-decoration:none; }
+  .nav-item:hover { background:var(--surface2); color:var(--text); }
+  .nav-item.active { background:var(--accent-glow); color:var(--accent); border:1px solid rgba(79,124,255,.3); }
+  .nav-item .icon { font-size:18px; width:20px; text-align:center; }
+  .badge { margin-left:auto; background:var(--red); color:#fff; font-size:10px; padding:1px 6px; border-radius:20px; }
+  .sidebar-footer { margin-top:auto; padding:16px 12px; border-top:1px solid var(--border); }
+
+  /* MAIN */
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+  /* TOPBAR */
+  .topbar { display:flex; align-items:center; gap:16px; padding:16px 28px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; }
+  .page-title { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; flex:1; }
+  .search-box { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:8px 14px; width:300px; transition:border-color .2s; }
+  .search-box:focus-within { border-color:var(--accent); }
+  .search-box input { background:none; border:none; outline:none; color:var(--text); font-size:13px; width:100%; font-family:'DM Sans',sans-serif; }
+  .search-box input::placeholder { color:var(--muted); }
+  .topbar-icons { display:flex; gap:8px; }
+  .icon-btn { width:38px; height:38px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:17px; position:relative; transition:background .2s; }
+  .icon-btn:hover { background:#252835; }
+  .notif-count { position:absolute; top:3px; right:3px; background:var(--red); color:#fff; font-size:9px; font-weight:700; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+
+  /* CONTENT */
+  .content { flex:1; overflow-y:auto; padding:24px 28px; display:flex; flex-direction:column; gap:24px; }
+
+  /* SUMMARY CARDS */
+  .summary-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; display:flex; align-items:center; gap:16px; transition:transform .2s,box-shadow .2s; animation:fadeUp .4s ease both; }
+  .card:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(0,0,0,.3); }
+  .card:nth-child(2) { animation-delay:.1s; } .card:nth-child(3) { animation-delay:.2s; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  .card-icon { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0; }
+  .card-icon.blue { background:var(--blue-bg); } .card-icon.green { background:var(--green-bg); } .card-icon.amber { background:var(--yellow-bg); }
+  .card-body { flex:1; }
+  .card-label { font-size:12px; color:var(--muted); font-weight:500; }
+  .card-value { font-family:'Syne',sans-serif; font-size:26px; font-weight:700; margin-top:2px; }
+  .card-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+  .trend { font-size:11px; padding:2px 7px; border-radius:20px; margin-left:auto; font-weight:600; }
+  .trend.up { background:var(--green-bg); color:var(--green); }
+
+  /* AGENDA SECTION */
+  .agenda-section { background:var(--surface); border:1px solid var(--border); border-radius:16px; display:flex; flex-direction:column; flex:1; min-height:0; animation:fadeUp .5s ease .3s both; }
+  .agenda-header { display:flex; align-items:center; gap:16px; padding:18px 22px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .agenda-title-row { flex:1; }
+  .agenda-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; }
+  .agenda-sub { font-size:12px; color:var(--muted); margin-top:1px; }
+  .view-toggle { display:flex; background:var(--surface2); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .view-btn { padding:7px 16px; font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:500; color:var(--muted); border:none; background:none; transition:all .2s; }
+  .view-btn.active { background:var(--accent); color:#fff; }
+  .nav-arrows { display:flex; gap:6px; }
+  .arrow-btn { width:32px; height:32px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px; color:var(--muted); transition:all .2s; }
+  .arrow-btn:hover { background:#252835; color:var(--text); }
+
+  /* CALENDAR GRID */
+  .calendar-wrap { flex:1; overflow:auto; }
+  .calendar { display:grid; grid-template-columns:64px repeat(7,1fr); min-width:800px; }
+  .cal-header-cell { padding:10px 6px; text-align:center; font-size:12px; font-weight:600; border-bottom:1px solid var(--border); border-right:1px solid var(--border); background:var(--surface2); position:sticky; top:0; z-index:2; }
+  .cal-header-cell .day-name { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:.06em; }
+  .cal-header-cell .day-num { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; margin-top:2px; }
+  .cal-header-cell.today .day-num { background:var(--accent); color:#fff; width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:2px auto 0; }
+  .cal-header-cell:first-child { background:var(--surface2); }
+  .time-cell { padding:0 8px; font-size:11px; color:var(--muted); text-align:right; border-right:1px solid var(--border); border-bottom:1px solid var(--border); height:80px; display:flex; align-items:flex-start; padding-top:6px; font-weight:500; }
+  .slot { border-right:1px solid var(--border); border-bottom:1px solid var(--border); height:80px; padding:4px; position:relative; cursor:pointer; transition:background .15s; }
+  .slot:hover { background:rgba(79,124,255,.05); }
+  .slot.empty:hover::after { content:'+'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--accent); opacity:.5; }
+  .appt { border-radius:8px; padding:6px 8px; height:100%; display:flex; flex-direction:column; gap:2px; cursor:pointer; transition:filter .15s,transform .15s; overflow:hidden; }
+  .appt:hover { filter:brightness(1.1); transform:scale(1.01); }
+  .appt.green { background:var(--green-bg); border-left:3px solid var(--green); }
+  .appt.yellow { background:var(--yellow-bg); border-left:3px solid var(--yellow); }
+  .appt.blue { background:var(--blue-bg); border-left:3px solid var(--blue); }
+  .appt.gray { background:var(--gray-bg); border-left:3px solid #4b5563; }
+  .appt-status { font-size:9px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+  .appt.green .appt-status { color:var(--green); } .appt.yellow .appt-status { color:var(--yellow); }
+  .appt.blue .appt-status { color:var(--blue); } .appt.gray .appt-status { color:#9ca3af; }
+  .appt-service { font-size:11px; font-weight:600; color:var(--text); line-height:1.2; }
+  .appt-client { font-size:10px; color:var(--muted); }
+  .appt-time { font-size:9px; color:var(--muted); margin-top:auto; }
+
+  /* FAB */
+  .fab { position:fixed; bottom:32px; right:32px; background:var(--accent); color:#fff; border:none; border-radius:16px; padding:14px 22px; font-size:14px; font-weight:700; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 8px 28px var(--accent-glow); transition:transform .2s,box-shadow .2s; z-index:100; }
+  .fab:hover { transform:translateY(-2px); box-shadow:0 12px 36px rgba(79,124,255,.45); }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); z-index:200; display:none; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:20px; width:520px; max-width:95vw; padding:28px; animation:fadeUp .3s ease; }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+  .modal-title { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; }
+  .modal-close { width:32px; height:32px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:16px; color:var(--muted); transition:background .2s; }
+  .modal-close:hover { background:#252835; color:var(--text); }
+  .form-grid { display:grid; gap:16px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-label { font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+  .form-input,.form-select { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:10px 14px; color:var(--text); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; transition:border-color .2s; }
+  .form-input:focus,.form-select:focus { border-color:var(--accent); }
+  .form-select option { background:var(--surface); }
+  .modal-footer { display:flex; gap:10px; margin-top:24px; justify-content:flex-end; }
+  .btn { padding:10px 20px; border-radius:10px; border:none; font-size:14px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .2s; }
+  .btn-secondary { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+  .btn-secondary:hover { background:#252835; color:var(--text); }
+  .btn-primary { background:var(--accent); color:#fff; box-shadow:0 4px 14px var(--accent-glow); }
+  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 20px var(--accent-glow); }
+  .btn-danger { background:rgba(239,68,68,.15); color:var(--red); border:1px solid rgba(239,68,68,.3); }
+  .btn-danger:hover { background:rgba(239,68,68,.25); }
+
+  /* DETAIL PANEL */
+  .detail-panel { position:fixed; top:0; right:-400px; width:400px; height:100vh; background:var(--surface); border-left:1px solid var(--border); z-index:150; transition:right .3s cubic-bezier(.4,0,.2,1); display:flex; flex-direction:column; overflow-y:auto; }
+  .detail-panel.open { right:0; }
+  .panel-header { padding:20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+  .panel-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; flex:1; }
+  .panel-body { padding:20px; display:flex; flex-direction:column; gap:20px; flex:1; }
+  .status-badge { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; }
+  .status-badge.green { background:var(--green-bg); color:var(--green); }
+  .status-badge.yellow { background:var(--yellow-bg); color:var(--yellow); }
+  .status-badge.blue { background:var(--blue-bg); color:var(--blue); }
+  .status-badge.gray { background:var(--gray-bg); color:#9ca3af; }
+  .detail-info { display:flex; flex-direction:column; gap:12px; }
+  .detail-row { display:flex; justify-content:space-between; align-items:center; }
+  .detail-key { font-size:12px; color:var(--muted); }
+  .detail-val { font-size:13px; font-weight:600; }
+  .panel-divider { height:1px; background:var(--border); }
+  .panel-actions { display:flex; flex-direction:column; gap:8px; }
+  .insumo-list { list-style:none; display:flex; flex-direction:column; gap:6px; }
+  .insumo-item { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface2); border-radius:8px; font-size:12px; }
+  .insumo-icon { font-size:16px; }
+  .insumo-name { flex:1; font-weight:500; }
+  .insumo-qty { color:var(--muted); font-size:11px; }
+  .insumo-check { color:var(--green); font-size:14px; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:90px; right:32px; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 18px; font-size:13px; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,.3); z-index:300; transform:translateY(20px); opacity:0; transition:all .3s cubic-bezier(.4,0,.2,1); display:flex; align-items:center; gap:8px; }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.success { border-color:var(--green); }
+  .toast.error { border-color:var(--red); }
+
+  ::-webkit-scrollbar { width:6px; height:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <span class="logo-icon">🏥</span>
+    Agenda<span>Quick</span>
+  </div>
+
+  <div class="filial-select">
+    <label>Filial</label>
+    <select onchange="showToast('🏥 Filial alterada: '+this.value,'success')">
+      <option>Hospital Central — São Paulo</option>
+      <option>Hospital Norte — Campinas</option>
+      <option>Hospital Sul — Santos</option>
+    </select>
+  </div>
+  <div class="filial-select" style="margin-top:8px">
+    <label>Centro Cirúrgico</label>
+    <select onchange="showToast('🔬 Centro: '+this.value,'success')">
+      <option>Centro Cirúrgico A — Geral</option>
+      <option>Centro Cirúrgico B — Especializado</option>
+    </select>
+  </div>
+
+  <div class="profile-card" onclick="showToast('👤 Perfil de Dra. Ana Silva','success')">
+    <div class="avatar">A</div>
+    <div class="profile-info">
+      <div class="profile-name">Dra. Ana Silva</div>
+      <div class="profile-role">Cirurgiã Chefe</div>
+    </div>
+    <span class="chevron">▾</span>
+  </div>
+
+  <div class="nav-label">Menu</div>
+  <a class="nav-item active" href="#" onclick="return false"><span class="icon">📆</span>Agenda</a>
+  <a class="nav-item" href="#" onclick="showSection('salas');return false"><span class="icon">🚪</span>Salas<span class="badge">5</span></a>
+  <a class="nav-item" href="#" onclick="showSection('pacientes');return false"><span class="icon">👥</span>Pacientes</a>
+  <a class="nav-item" href="#" onclick="showSection('insumos');return false"><span class="icon">📦</span>Insumos</a>
+  <a class="nav-item" href="#" onclick="showSection('relatorios');return false"><span class="icon">📊</span>Relatórios</a>
+
+  <div class="nav-label" style="margin-top:8px">Sistema</div>
+  <a class="nav-item" href="#" onclick="showSection('permissoes');return false"><span class="icon">🔐</span>Permissões</a>
+  <a class="nav-item" href="#" onclick="showSection('config');return false"><span class="icon">⚙️</span>Configurações</a>
+
+  <div class="sidebar-footer">
+    <div class="profile-card" style="margin:0">
+      <div class="avatar" style="background:linear-gradient(135deg,#22c55e,#16a34a)">A</div>
+      <div class="profile-info">
+        <div class="profile-name">Dra. Ana Silva</div>
+        <div class="profile-role">Online agora</div>
+      </div>
+      <span style="color:#22c55e;font-size:18px">●</span>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title">Painel de Agendamento Cirúrgico</div>
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" placeholder="Pesquisar paciente ou procedimento..." oninput="handleSearch(this.value)">
+    </div>
+    <div class="topbar-icons">
+      <div class="icon-btn" onclick="openNotifications()">🔔<div class="notif-count">4</div></div>
+      <div class="icon-btn" onclick="showToast('⚙️ Configurações abertas','success')">⚙️</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="summary-cards">
+      <div class="card">
+        <div class="card-icon blue">🏥</div>
+        <div class="card-body">
+          <div class="card-label">Cirurgias Hoje</div>
+          <div class="card-value" id="total-hoje">0</div>
+          <div class="card-sub">procedimentos agendados</div>
+        </div>
+        <div class="trend up">+2 ↑</div>
+      </div>
+      <div class="card">
+        <div class="card-icon green">🚪</div>
+        <div class="card-body">
+          <div class="card-label">Salas Ocupadas</div>
+          <div class="card-value" id="salas-ocupadas">0</div>
+          <div class="card-sub">de 5 disponíveis</div>
+        </div>
+        <div class="trend up">ativas</div>
+      </div>
+      <div class="card">
+        <div class="card-icon amber">📦</div>
+        <div class="card-body">
+          <div class="card-label">Insumos Reservados</div>
+          <div class="card-value" id="insumos-total">0</div>
+          <div class="card-sub">itens para hoje</div>
+        </div>
+        <div class="trend up">98% ↑</div>
+      </div>
+    </div>
+
+    <div class="agenda-section">
+      <div class="agenda-header">
+        <div class="agenda-title-row">
+          <div class="agenda-title" id="agenda-range">—</div>
+          <div class="agenda-sub">Visão Semanal · Centro Cirúrgico A</div>
+        </div>
+        <div class="nav-arrows">
+          <div class="arrow-btn" onclick="prevWeek()">◀</div>
+          <div class="arrow-btn" onclick="nextWeek()">▶</div>
+        </div>
+        <div class="view-toggle">
+          <button class="view-btn" onclick="setView('diaria',this)">Diária</button>
+          <button class="view-btn active" onclick="setView('semanal',this)">Semanal</button>
+          <button class="view-btn" onclick="setView('mensal',this)">Mensal</button>
+        </div>
+      </div>
+      <div class="calendar-wrap">
+        <div class="calendar" id="calendar-grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openModal()">＋ Nova Cirurgia</button>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏥 Novo Agendamento Cirúrgico</div>
+      <div class="modal-close" onclick="closeModal()">✕</div>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Paciente</label>
+        <input class="form-input" type="text" id="f-patient" placeholder="Nome completo do paciente...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo de Serviço</label>
+          <select class="form-select" id="f-service">
+            <option>Cirurgia Geral</option>
+            <option>Ortopedia</option>
+            <option>Cardiologia</option>
+            <option>Neurologia</option>
+            <option>Oftalmologia</option>
+            <option>Urologia</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sala Cirúrgica</label>
+          <select class="form-select" id="f-room">
+            <option>Sala 01</option><option>Sala 02</option><option>Sala 03</option>
+            <option>Sala 04</option><option>Sala 05</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Cirurgião Responsável</label>
+          <select class="form-select" id="f-surgeon">
+            <option>Dra. Ana Silva</option>
+            <option>Dr. Carlos Mendes</option>
+            <option>Dra. Juliana Ferreira</option>
+            <option>Dr. Roberto Almeida</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="f-status">
+            <option value="yellow">Pendente</option>
+            <option value="green">Confirmada</option>
+            <option value="blue">Em andamento</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Data</label>
+          <input class="form-input" type="date" id="f-date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Horário</label>
+          <select class="form-select" id="f-time">
+            <option>07:00</option><option>08:00</option><option>09:00</option><option>10:00</option>
+            <option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option>
+            <option>15:00</option><option>16:00</option><option>17:00</option><option>18:00</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Observações</label>
+        <input class="form-input" type="text" id="f-notes" placeholder="Informações adicionais sobre o procedimento...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAppointment()">Confirmar Agendamento</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detail-panel">
+  <div class="panel-header">
+    <div class="panel-title" id="panel-title">Detalhes</div>
+    <div class="modal-close" onclick="closePanel()">✕</div>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Mensagem</span>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// DADOS E CONFIGURAÇÃO
+// ══════════════════════════════════════════════════════════════
+const HOURS = ['07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'];
+const DAY_NAMES = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const STATUS_LABELS = { green:'Confirmada', yellow:'Pendente', blue:'Em andamento', gray:'Bloqueado' };
+
+// Semana baseada na data real de hoje
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+let weekOffset = 0;
+
+function getWeekStart() {
+  const d = new Date(TODAY);
+  d.setDate(d.getDate() - d.getDay() + weekOffset * 7);
+  return d;
+}
+function getWeekDays() {
+  const start = getWeekStart(), days = [];
+  for (let i = 0; i < 7; i++) { const d = new Date(start); d.setDate(start.getDate()+i); days.push(d); }
+  return days;
+}
+function fmtDate(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+// Insumos padrão por tipo de cirurgia
+const INSUMOS = {
+  'Cirurgia Geral': [{n:'Luvas Estéreis',q:'4 pares',i:'🧤'},{n:'Bisturi nº15',q:'2 un',i:'🔪'},{n:'Fios de Sutura',q:'3 un',i:'🧵'},{n:'Soro Fisiológico',q:'2L',i:'💧'},{n:'Gaze Estéril',q:'20 un',i:'🩹'}],
+  'Ortopedia': [{n:'Luvas Estéreis',q:'4 pares',i:'🧤'},{n:'Parafusos Ortopédicos',q:'6 un',i:'🔩'},{n:'Placas de Titânio',q:'2 un',i:'🦴'},{n:'Soro Fisiológico',q:'3L',i:'💧'},{n:'Cimento Ósseo',q:'1 un',i:'🧱'}],
+  'Cardiologia': [{n:'Cateter Cardíaco',q:'2 un',i:'❤️'},{n:'Stent',q:'1 un',i:'🫀'},{n:'Luvas Estéreis',q:'6 pares',i:'🧤'},{n:'Contraste',q:'100mL',i:'💉'},{n:'Soro Fisiológico',q:'4L',i:'💧'}],
+  'Neurologia': [{n:'Micro-instrumentos',q:'1 kit',i:'🔬'},{n:'Luvas Estéreis',q:'6 pares',i:'🧤'},{n:'Clips de Aneurisma',q:'3 un',i:'📎'},{n:'Soro Fisiológico',q:'3L',i:'💧'},{n:'Gaze Estéril',q:'30 un',i:'🩹'}],
+  'Oftalmologia': [{n:'Lente Intraocular',q:'1 un',i:'👁️'},{n:'Viscoelástico',q:'2 un',i:'💧'},{n:'Micro-bisturi',q:'1 un',i:'🔪'},{n:'Luvas Estéreis',q:'2 pares',i:'🧤'},{n:'Colírio Anestésico',q:'1 un',i:'💉'}],
+  'Urologia': [{n:'Cateter Uretral',q:'2 un',i:'🏥'},{n:'Luvas Estéreis',q:'4 pares',i:'🧤'},{n:'Soro Fisiológico',q:'3L',i:'💧'},{n:'Bisturi nº11',q:'2 un',i:'🔪'},{n:'Gaze Estéril',q:'20 un',i:'🩹'}]
+};
+
+// Appointments: chave "YYYY-MM-DD_HH:00"
+const td = fmtDate(TODAY);
+const tom = fmtDate(new Date(TODAY.getTime()+86400000));
+const d2 = fmtDate(new Date(TODAY.getTime()+86400000*2));
+const d3 = fmtDate(new Date(TODAY.getTime()+86400000*3));
+const d4 = fmtDate(new Date(TODAY.getTime()+86400000*4));
+const yd = fmtDate(new Date(TODAY.getTime()-86400000));
+
+let appointments = {};
+appointments[td+'_07:00'] = {service:'Cirurgia Geral',patient:'Maria da Silva Santos',room:'Sala 01',surgeon:'Dra. Ana Silva',status:'green',notes:'Colecistectomia laparoscópica'};
+appointments[td+'_09:00'] = {service:'Ortopedia',patient:'João Pedro Oliveira',room:'Sala 02',surgeon:'Dr. Carlos Mendes',status:'green',notes:'Artroscopia de joelho direito'};
+appointments[td+'_10:00'] = {service:'Cardiologia',patient:'Ana Clara Mendes',room:'Sala 03',surgeon:'Dra. Juliana Ferreira',status:'blue',notes:'Cateterismo cardíaco'};
+appointments[td+'_12:00'] = {service:'Bloqueio',patient:'',room:'',surgeon:'',status:'gray',notes:'Higienização das salas'};
+appointments[td+'_14:00'] = {service:'Neurologia',patient:'Carlos Eduardo Lima',room:'Sala 04',surgeon:'Dr. Roberto Almeida',status:'yellow',notes:'Craniotomia — aguardando exames'};
+appointments[td+'_16:00'] = {service:'Oftalmologia',patient:'Fernanda Costa',room:'Sala 05',surgeon:'Dra. Ana Silva',status:'green',notes:'Facoemulsificação catarata OE'};
+appointments[tom+'_08:00'] = {service:'Cirurgia Geral',patient:'Roberto Almeida Jr.',room:'Sala 01',surgeon:'Dra. Juliana Ferreira',status:'yellow',notes:'Herniorrafia inguinal'};
+appointments[tom+'_10:00'] = {service:'Ortopedia',patient:'Luciana Martins',room:'Sala 02',surgeon:'Dr. Carlos Mendes',status:'green',notes:'Fixação de fratura de fêmur'};
+appointments[tom+'_12:00'] = {service:'Bloqueio',patient:'',room:'',surgeon:'',status:'gray',notes:'Higienização das salas'};
+appointments[tom+'_14:00'] = {service:'Urologia',patient:'Paulo Henrique Dias',room:'Sala 03',surgeon:'Dr. Roberto Almeida',status:'yellow',notes:'Litotripsia'};
+appointments[d2+'_09:00'] = {service:'Cardiologia',patient:'Marcos Vinícius',room:'Sala 03',surgeon:'Dra. Juliana Ferreira',status:'green',notes:'Implante de marcapasso'};
+appointments[d2+'_12:00'] = {service:'Bloqueio',patient:'',room:'',surgeon:'',status:'gray',notes:'Higienização'};
+appointments[d3+'_08:00'] = {service:'Neurologia',patient:'Juliana Ferreira Lopes',room:'Sala 04',surgeon:'Dr. Roberto Almeida',status:'green',notes:'Descompressão microvascular'};
+appointments[d3+'_12:00'] = {service:'Bloqueio',patient:'',room:'',surgeon:'',status:'gray',notes:'Higienização'};
+appointments[d4+'_10:00'] = {service:'Ortopedia',patient:'Renato Borges',room:'Sala 02',surgeon:'Dr. Carlos Mendes',status:'yellow',notes:'Artroplastia total de quadril'};
+appointments[yd+'_09:00'] = {service:'Cirurgia Geral',patient:'Teresa Cristina',room:'Sala 01',surgeon:'Dra. Ana Silva',status:'green',notes:'Apendicectomia'};
+appointments[yd+'_14:00'] = {service:'Oftalmologia',patient:'Antônio Souza',room:'Sala 05',surgeon:'Dra. Ana Silva',status:'green',notes:'Vitrectomia posterior'};
+
+// ══════════════════════════════════════════════════════════════
+// RENDER CALENDAR
+// ══════════════════════════════════════════════════════════════
+function renderCalendar() {
+  const days = getWeekDays();
+  const grid = document.getElementById('calendar-grid');
+  grid.innerHTML = '';
+  const start = days[0], end = days[6];
+  document.getElementById('agenda-range').textContent =
+    start.getDate()+' – '+end.getDate()+' '+MONTHS[end.getMonth()]+', '+end.getFullYear();
+
+  // Header
+  const eh = document.createElement('div'); eh.className='cal-header-cell'; grid.appendChild(eh);
+  days.forEach(d => {
+    const c = document.createElement('div');
+    c.className = 'cal-header-cell'+(d.getTime()===TODAY.getTime()?' today':'');
+    c.innerHTML = '<div class="day-name">'+DAY_NAMES[d.getDay()]+' '+d.getDate()+'</div>';
+    grid.appendChild(c);
+  });
+
+  // Rows
+  HOURS.forEach(hour => {
+    const tc = document.createElement('div'); tc.className='time-cell'; tc.textContent=hour; grid.appendChild(tc);
+    days.forEach(d => {
+      const key = fmtDate(d)+'_'+hour;
+      const appt = appointments[key];
+      const slot = document.createElement('div');
+      slot.className = 'slot'+(appt?'':' empty');
+      if (appt) {
+        const div = document.createElement('div');
+        div.className = 'appt '+appt.status;
+        div.innerHTML =
+          '<div class="appt-status">'+STATUS_LABELS[appt.status]+'</div>'+
+          '<div class="appt-service">'+appt.service+'</div>'+
+          (appt.patient?'<div class="appt-client">'+appt.patient+'</div>':'')+
+          (appt.room?'<div class="appt-time">'+appt.room+'</div>':'');
+        div.onclick = e => { e.stopPropagation(); openPanel(key,d,hour); };
+        slot.appendChild(div);
+      } else {
+        slot.onclick = () => openModalForSlot(d,hour);
+      }
+      grid.appendChild(slot);
+    });
+  });
+  updateStats();
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAVIGATION & VIEWS
+// ══════════════════════════════════════════════════════════════
+function prevWeek() { weekOffset--; renderCalendar(); }
+function nextWeek() { weekOffset++; renderCalendar(); }
+function setView(v,btn) {
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  showToast('📅 Visão '+btn.textContent+' ativada','success');
+}
+
+// ══════════════════════════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════════════════════════
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('f-date').value = fmtDate(TODAY);
+}
+function openModalForSlot(d,hour) {
+  openModal();
+  document.getElementById('f-date').value = fmtDate(d);
+  document.getElementById('f-time').value = hour;
+}
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+function saveAppointment() {
+  const patient = document.getElementById('f-patient').value.trim();
+  const service = document.getElementById('f-service').value;
+  const room    = document.getElementById('f-room').value;
+  const surgeon = document.getElementById('f-surgeon').value;
+  const status  = document.getElementById('f-status').value;
+  const date    = document.getElementById('f-date').value;
+  const time    = document.getElementById('f-time').value;
+  const notes   = document.getElementById('f-notes').value.trim();
+
+  if (!patient) { showToast('⚠️ Informe o nome do paciente','error'); return; }
+  if (!date)    { showToast('⚠️ Informe a data','error'); return; }
+
+  const key = date+'_'+time;
+  // Validação de conflito: mesma sala + horário
+  if (appointments[key] && appointments[key].room === room) {
+    showToast('⚠️ Conflito! '+room+' já está ocupada em '+time+' nesta data','error');
+    return;
+  }
+  if (appointments[key]) {
+    showToast('⚠️ Conflito! Já existe agendamento nesse horário','error');
+    return;
+  }
+
+  appointments[key] = {service,patient,room,surgeon,status,notes};
+  renderCalendar();
+  closeModal();
+  showToast('✅ Cirurgia agendada com sucesso! Insumos reservados automaticamente.','success');
+  document.getElementById('f-patient').value = '';
+  document.getElementById('f-notes').value = '';
+}
+
+// ══════════════════════════════════════════════════════════════
+// DETAIL PANEL
+// ══════════════════════════════════════════════════════════════
+function openPanel(key,d,hour) {
+  const a = appointments[key];
+  if (!a) return;
+  document.getElementById('panel-title').textContent = a.service;
+  const dateStr = d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();
+  const insumos = INSUMOS[a.service] || INSUMOS['Cirurgia Geral'];
+  let insHtml = '<ul class="insumo-list">';
+  insumos.forEach(ins => {
+    insHtml += '<li class="insumo-item"><span class="insumo-icon">'+ins.i+'</span><span class="insumo-name">'+ins.n+'</span><span class="insumo-qty">'+ins.q+'</span><span class="insumo-check">✓</span></li>';
+  });
+  insHtml += '</ul>';
+
+  document.getElementById('panel-body').innerHTML =
+    '<div><span class="status-badge '+a.status+'">● '+STATUS_LABELS[a.status]+'</span></div>'+
+    '<div class="detail-info">'+
+      '<div class="detail-row"><span class="detail-key">📅 Data</span><span class="detail-val">'+dateStr+'</span></div>'+
+      '<div class="detail-row"><span class="detail-key">🕐 Horário</span><span class="detail-val">'+hour+'</span></div>'+
+      (a.patient?'<div class="detail-row"><span class="detail-key">👤 Paciente</span><span class="detail-val">'+a.patient+'</span></div>':'')+
+      (a.room?'<div class="detail-row"><span class="detail-key">🚪 Sala</span><span class="detail-val">'+a.room+'</span></div>':'')+
+      (a.surgeon?'<div class="detail-row"><span class="detail-key">🩺 Cirurgião</span><span class="detail-val">'+a.surgeon+'</span></div>':'')+
+      (a.notes?'<div class="detail-row"><span class="detail-key">📝 Obs</span><span class="detail-val">'+a.notes+'</span></div>':'')+
+    '</div>'+
+    '<div class="panel-divider"></div>'+
+    '<div><div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📦 Insumos Reservados</div>'+insHtml+'</div>'+
+    '<div class="panel-divider"></div>'+
+    '<div class="panel-actions">'+
+      '<button class="btn btn-primary" onclick="changeStatus(\''+key+'\',\'green\')">✅ Confirmar Cirurgia</button>'+
+      '<button class="btn btn-secondary" onclick="changeStatus(\''+key+'\',\'blue\')">🔵 Iniciar Procedimento</button>'+
+      '<button class="btn btn-danger" onclick="deleteAppt(\''+key+'\')">🗑 Cancelar Agendamento</button>'+
+    '</div>';
+  document.getElementById('detail-panel').classList.add('open');
+}
+function closePanel() { document.getElementById('detail-panel').classList.remove('open'); }
+
+function changeStatus(key,status) {
+  if (appointments[key]) {
+    appointments[key].status = status;
+    renderCalendar(); closePanel();
+    showToast('✅ Status atualizado para '+STATUS_LABELS[status],'success');
+  }
+}
+function deleteAppt(key) {
+  delete appointments[key];
+  renderCalendar(); closePanel();
+  showToast('🗑 Agendamento cancelado e insumos liberados','success');
+}
+
+// ══════════════════════════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════════════════════════
+function updateStats() {
+  const todayStr = fmtDate(TODAY);
+  const todayAppts = Object.entries(appointments).filter(([k])=>k.startsWith(todayStr));
+  const active = todayAppts.filter(([,a])=>a.status!=='gray');
+  const rooms = new Set(active.map(([,a])=>a.room).filter(Boolean));
+  document.getElementById('total-hoje').textContent = active.length;
+  document.getElementById('salas-ocupadas').textContent = rooms.size;
+  document.getElementById('insumos-total').textContent = active.length * 5;
+}
+
+// ══════════════════════════════════════════════════════════════
+// SEARCH, NOTIFICATIONS, SECTIONS, TOAST
+// ══════════════════════════════════════════════════════════════
+function handleSearch(val) {
+  if (!val) { renderCalendar(); return; }
+  const v = val.toLowerCase();
+  document.querySelectorAll('.appt').forEach(el => {
+    el.style.opacity = el.textContent.toLowerCase().includes(v) ? '1' : '0.2';
+  });
+}
+function openNotifications() {
+  showToast('🔔 4 cirurgias aguardando confirmação','success');
+}
+function showSection(s) {
+  const labels = {salas:'🚪 Salas',pacientes:'👥 Pacientes',insumos:'📦 Insumos',relatorios:'📊 Relatórios',permissoes:'🔐 Permissões',config:'⚙️ Configurações'};
+  showToast((labels[s]||s)+' — módulo em desenvolvimento','success');
+}
+let toastTimer;
+function showToast(msg,type) {
+  const el = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  el.className = 'toast '+type+' show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// INIT
+renderCalendar();
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+/* DetailPanel.css */
+.detail-panel {
+  position: fixed; top: 0; right: -400px;
+  width: 400px; height: 100vh;
+  background: var(--surface); border-left: 1px solid var(--border);
+  z-index: 150; transition: right .3s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column; overflow-y: auto;
+}
+.detail-panel.open { right: 0; }
+.panel-header {
+  padding: 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.panel-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; flex: 1; }
+.panel-body { padding: 20px; display: flex; flex-direction: column; gap: 20px; flex: 1; }
+.status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+.status-badge.green  { background: var(--green-bg); color: var(--green); }
+.status-badge.yellow { background: var(--yellow-bg); color: var(--yellow); }
+.status-badge.blue   { background: var(--blue-bg); color: var(--blue); }
+.status-badge.gray   { background: var(--gray-bg); color: #9ca3af; }
+.detail-info { display: flex; flex-direction: column; gap: 12px; }
+.detail-row { display: flex; justify-content: space-between; align-items: center; }
+.detail-key { font-size: 12px; color: var(--muted); }
+.detail-val { font-size: 13px; font-weight: 600; }
+.panel-divider { height: 1px; background: var(--border); }
+.panel-actions { display: flex; flex-direction: column; gap: 8px; }
+.insumo-section-title {
+  font-size: 12px; font-weight: 600; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px;
+}
+.insumo-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.insumo-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; background: var(--surface2); border-radius: 8px; font-size: 12px;
+}
+.insumo-icon { font-size: 16px; }
+.insumo-name { flex: 1; font-weight: 500; }
+.insumo-qty { color: var(--muted); font-size: 11px; }
+.insumo-check { color: var(--green); font-size: 14px; }
