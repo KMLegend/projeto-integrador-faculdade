@@ -1,0 +1,340 @@
+.saas-container {
+  background-color: #1e293b;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  color: #f8fafc;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.saas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #334155;
+}
+
+.saas-title-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.saas-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.saas-badge {
+  background: #3b28cc;
+  color: #fff;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.saas-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.saas-search {
+  padding: 8px 12px 8px 36px;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.85rem;
+  background: #0f172a url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%2394a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>') no-repeat 10px center;
+  width: 250px;
+  color: #f8fafc;
+}
+
+.saas-btn {
+  background-color: #3b28cc;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+
+.saas-btn:hover {
+  opacity: 0.9;
+}
+
+.saas-btn-outline {
+  background-color: transparent;
+  color: #cbd5e1;
+  border: 1px solid #475569;
+}
+
+.saas-btn-outline:hover {
+  background-color: #334155;
+  color: #f8fafc;
+}
+
+.saas-table-wrapper {
+  overflow-x: auto;
+  flex: 1;
+}
+
+.saas-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.saas-table th {
+  padding: 12px 24px;
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  border-bottom: 2px solid #334155;
+  background: #1e293b;
+}
+
+.saas-table td {
+  padding: 16px 24px;
+  font-size: 0.875rem;
+  color: #e2e8f0;
+  border-bottom: 1px solid #334155;
+  vertical-align: middle;
+}
+
+.saas-table tr:hover {
+  background-color: #334155;
+}
+
+.saas-table tr.selected {
+  background-color: #0f172a;
+}
+
+.saas-checkbox-cell {
+  width: 40px;
+  padding-left: 24px !important;
+  padding-right: 0 !important;
+}
+
+/* Custom Checkbox */
+.custom-checkbox {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #475569;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  outline: none;
+  background: transparent;
+}
+.custom-checkbox:checked {
+  background-color: #3b28cc;
+  border-color: #3b28cc;
+}
+.custom-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Status dots */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-dot.green { background-color: #10b981; }
+.status-dot.blue { background-color: #3b82f6; }
+.status-dot.yellow { background-color: #f59e0b; }
+.status-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.2);
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+}
+.status-pill.blue {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.2);
+}
+.status-pill.yellow {
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.2);
+}
+
+/* Floating Action Bar */
+.floating-action-bar {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 30px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  color: white;
+  font-size: 0.875rem;
+  animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideUp {
+  from { bottom: -60px; opacity: 0; }
+  to { bottom: 30px; opacity: 1; }
+}
+
+.fab-count {
+  background: #334155;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.fab-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 16px;
+  transition: all 0.2s;
+}
+
+.fab-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+}
+
+.fab-btn.danger {
+  background: rgba(244, 63, 94, 0.2);
+  color: #f43f5e;
+}
+.fab-btn.danger:hover {
+  background: #e11d48;
+  color: white;
+}
+
+.fab-divider {
+  width: 1px;
+  height: 24px;
+  background-color: #334155;
+}
+
+/* Form Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  width: 450px;
+  max-width: 90vw;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  color: #f8fafc;
+}
+
+.modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #334155;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.form-group input, .form-group select {
+  padding: 10px 12px;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  outline: none;
+  background: #0f172a;
+  color: #f8fafc;
+}
+
+.form-group input:focus {
+  border-color: #3b28cc;
+  box-shadow: 0 0 0 3px rgba(59, 40, 204, 0.3);
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #334155;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #1e293b;
+}

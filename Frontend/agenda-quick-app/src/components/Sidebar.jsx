@@ -9,7 +9,7 @@ import './Sidebar.css';
  * Props:
  * - onToast(msg, type): callback para exibir notificação
  */
-export default function Sidebar({ onToast }) {
+export default function Sidebar({ onToast, currentView, setCurrentView }) {
   return (
     <aside className="sidebar">
       <div className="logo">
@@ -45,19 +45,19 @@ export default function Sidebar({ onToast }) {
 
       {/* Navegação */}
       <div className="nav-label">Menu</div>
-      <a className="nav-item active" href="#" onClick={e => e.preventDefault()}>
+      <a className={`nav-item ${currentView === 'agenda' ? 'active' : ''}`} href="#" onClick={e => { e.preventDefault(); setCurrentView('agenda'); }}>
         <span className="icon">📆</span>Agenda
       </a>
-      <a className="nav-item" href="#" onClick={e => { e.preventDefault(); onToast('🚪 Salas — em desenvolvimento', 'success'); }}>
+      <a className={`nav-item ${currentView === 'salas' ? 'active' : ''}`} href="#" onClick={e => { e.preventDefault(); setCurrentView('salas'); }}>
         <span className="icon">🚪</span>Salas<span className="nav-badge">5</span>
       </a>
-      <a className="nav-item" href="#" onClick={e => { e.preventDefault(); onToast('👥 Pacientes — em desenvolvimento', 'success'); }}>
+      <a className={`nav-item ${currentView === 'pacientes' ? 'active' : ''}`} href="#" onClick={e => { e.preventDefault(); setCurrentView('pacientes'); }}>
         <span className="icon">👥</span>Pacientes
       </a>
-      <a className="nav-item" href="#" onClick={e => { e.preventDefault(); onToast('📦 Insumos — em desenvolvimento', 'success'); }}>
+      <a className={`nav-item ${currentView === 'insumos' ? 'active' : ''}`} href="#" onClick={e => { e.preventDefault(); setCurrentView('insumos'); }}>
         <span className="icon">📦</span>Insumos
       </a>
-      <a className="nav-item" href="#" onClick={e => { e.preventDefault(); onToast('📊 Relatórios — em desenvolvimento', 'success'); }}>
+      <a className={`nav-item ${currentView === 'relatorios' ? 'active' : ''}`} href="#" onClick={e => { e.preventDefault(); setCurrentView('relatorios'); }}>
         <span className="icon">📊</span>Relatórios
       </a>
 
