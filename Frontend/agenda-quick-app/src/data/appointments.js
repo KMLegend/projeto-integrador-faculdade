@@ -31,26 +31,26 @@ export const STATUS_OPTIONS = [
 ];
 
 export const SERVICES = [
-  'Cirurgia Geral', 'Ortopedia', 'Cardiologia',
-  'Neurologia', 'Oftalmologia', 'Urologia'
+  'Cirurgia Geral', 'Cirurgia Cardiaca', 'Colonoscopia',
+  'Ortopedia', 'Oftalmologia'
 ];
 
-export const ROOMS = ['Sala 01','Sala 02','Sala 03','Sala 04','Sala 05'];
+export const ROOMS = ['Sala 01', 'Sala 02', 'Sala Cardio', 'Sala Norte 01'];
 
 export const SURGEONS = [
-  'Dra. Ana Silva', 'Dr. Carlos Mendes',
-  'Dra. Juliana Ferreira', 'Dr. Roberto Almeida'
+  'Dr. Ricardo Alves', 'Dra. Fernanda Lima',
+  'Dr. Paulo Mendes'
 ];
 
 export const FILIAIS = [
-  'Hospital Central — São Paulo',
-  'Hospital Norte — Campinas',
-  'Hospital Sul — Santos'
+  'Hospital Central Goiania',
+  'Clinica Norte'
 ];
 
 export const CENTROS = [
-  'Centro Cirúrgico A — Geral',
-  'Centro Cirúrgico B — Especializado'
+  'Bloco A - Cirurgia Geral',
+  'Bloco B - Cardiologia',
+  'Centro Cirurgico Norte'
 ];
 
 // ── Insumos por tipo de cirurgia ─────────────────────────────
@@ -62,40 +62,24 @@ export const INSUMOS = {
     { name: 'Soro Fisiológico', qty: '2L', icon: '💧' },
     { name: 'Gaze Estéril', qty: '20 un', icon: '🩹' },
   ],
-  'Ortopedia': [
-    { name: 'Luvas Estéreis', qty: '4 pares', icon: '🧤' },
-    { name: 'Parafusos Ortopédicos', qty: '6 un', icon: '🔩' },
-    { name: 'Placas de Titânio', qty: '2 un', icon: '🦴' },
-    { name: 'Soro Fisiológico', qty: '3L', icon: '💧' },
-    { name: 'Cimento Ósseo', qty: '1 un', icon: '🧱' },
-  ],
-  'Cardiologia': [
-    { name: 'Cateter Cardíaco', qty: '2 un', icon: '❤️' },
-    { name: 'Stent', qty: '1 un', icon: '🫀' },
+  'Cirurgia Cardiaca': [
+    { name: 'Propofol 200mg', qty: '2 amp', icon: '💉' },
     { name: 'Luvas Estéreis', qty: '6 pares', icon: '🧤' },
-    { name: 'Contraste', qty: '100mL', icon: '💉' },
     { name: 'Soro Fisiológico', qty: '4L', icon: '💧' },
   ],
-  'Neurologia': [
-    { name: 'Micro-instrumentos', qty: '1 kit', icon: '🔬' },
-    { name: 'Luvas Estéreis', qty: '6 pares', icon: '🧤' },
-    { name: 'Clips de Aneurisma', qty: '3 un', icon: '📎' },
+  'Colonoscopia': [
+    { name: 'Lidocaina 2%', qty: '1 frasco', icon: '💉' },
+    { name: 'Propofol 200mg', qty: '1 amp', icon: '💉' },
+    { name: 'Luvas Estéreis', qty: '2 pares', icon: '🧤' },
+  ],
+  'Ortopedia': [
+    { name: 'Luvas Estéreis', qty: '4 pares', icon: '🧤' },
     { name: 'Soro Fisiológico', qty: '3L', icon: '💧' },
-    { name: 'Gaze Estéril', qty: '30 un', icon: '🩹' },
   ],
   'Oftalmologia': [
-    { name: 'Lente Intraocular', qty: '1 un', icon: '👁️' },
     { name: 'Viscoelástico', qty: '2 un', icon: '💧' },
     { name: 'Micro-bisturi', qty: '1 un', icon: '🔪' },
     { name: 'Luvas Estéreis', qty: '2 pares', icon: '🧤' },
-    { name: 'Colírio Anestésico', qty: '1 un', icon: '💉' },
-  ],
-  'Urologia': [
-    { name: 'Cateter Uretral', qty: '2 un', icon: '🏥' },
-    { name: 'Luvas Estéreis', qty: '4 pares', icon: '🧤' },
-    { name: 'Soro Fisiológico', qty: '3L', icon: '💧' },
-    { name: 'Bisturi nº11', qty: '2 un', icon: '🔪' },
-    { name: 'Gaze Estéril', qty: '20 un', icon: '🩹' },
   ],
 };
 
@@ -125,23 +109,14 @@ export function createInitialAppointments() {
 
   const offsets = [-1, 0, 0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 3, 4];
   const data = [
-    { off: -1, h: '09:00', service: 'Cirurgia Geral', patient: 'Teresa Cristina', room: 'Sala 01', surgeon: 'Dra. Ana Silva', status: 'green', notes: 'Apendicectomia' },
-    { off: -1, h: '14:00', service: 'Oftalmologia', patient: 'Antônio Souza', room: 'Sala 05', surgeon: 'Dra. Ana Silva', status: 'green', notes: 'Vitrectomia posterior' },
-    { off: 0, h: '07:00', service: 'Cirurgia Geral', patient: 'Maria da Silva Santos', room: 'Sala 01', surgeon: 'Dra. Ana Silva', status: 'green', notes: 'Colecistectomia laparoscópica' },
-    { off: 0, h: '09:00', service: 'Ortopedia', patient: 'João Pedro Oliveira', room: 'Sala 02', surgeon: 'Dr. Carlos Mendes', status: 'green', notes: 'Artroscopia de joelho direito' },
-    { off: 0, h: '10:00', service: 'Cardiologia', patient: 'Ana Clara Mendes', room: 'Sala 03', surgeon: 'Dra. Juliana Ferreira', status: 'blue', notes: 'Cateterismo cardíaco' },
+    { off: -1, h: '09:00', service: 'Cirurgia Geral', patient: 'Maria Aparecida Santos', room: 'Sala 01', surgeon: 'Dra. Fernanda Lima', status: 'green', notes: '' },
+    { off: -1, h: '14:00', service: 'Oftalmologia', patient: 'Jose Carlos Oliveira', room: 'Sala Norte 01', surgeon: 'Dr. Paulo Mendes', status: 'green', notes: '' },
+    { off: 0, h: '07:00', service: 'Cirurgia Geral', patient: 'Ana Paula Ferreira', room: 'Sala 01', surgeon: 'Dr. Ricardo Alves', status: 'green', notes: '' },
+    { off: 0, h: '09:00', service: 'Ortopedia', patient: 'Roberto Costa Lima', room: 'Sala 02', surgeon: 'Dra. Fernanda Lima', status: 'green', notes: '' },
+    { off: 0, h: '10:00', service: 'Cirurgia Cardiaca', patient: 'Lucia Helena Barbosa', room: 'Sala Cardio', surgeon: 'Dr. Paulo Mendes', status: 'blue', notes: '' },
     { off: 0, h: '12:00', service: 'Bloqueio', patient: '', room: '', surgeon: '', status: 'gray', notes: 'Higienização das salas' },
-    { off: 0, h: '14:00', service: 'Neurologia', patient: 'Carlos Eduardo Lima', room: 'Sala 04', surgeon: 'Dr. Roberto Almeida', status: 'yellow', notes: 'Craniotomia — aguardando exames' },
-    { off: 0, h: '16:00', service: 'Oftalmologia', patient: 'Fernanda Costa', room: 'Sala 05', surgeon: 'Dra. Ana Silva', status: 'green', notes: 'Facoemulsificação catarata OE' },
-    { off: 1, h: '08:00', service: 'Cirurgia Geral', patient: 'Roberto Almeida Jr.', room: 'Sala 01', surgeon: 'Dra. Juliana Ferreira', status: 'yellow', notes: 'Herniorrafia inguinal' },
-    { off: 1, h: '10:00', service: 'Ortopedia', patient: 'Luciana Martins', room: 'Sala 02', surgeon: 'Dr. Carlos Mendes', status: 'green', notes: 'Fixação de fratura de fêmur' },
-    { off: 1, h: '12:00', service: 'Bloqueio', patient: '', room: '', surgeon: '', status: 'gray', notes: 'Higienização das salas' },
-    { off: 1, h: '14:00', service: 'Urologia', patient: 'Paulo Henrique Dias', room: 'Sala 03', surgeon: 'Dr. Roberto Almeida', status: 'yellow', notes: 'Litotripsia' },
-    { off: 2, h: '09:00', service: 'Cardiologia', patient: 'Marcos Vinícius', room: 'Sala 03', surgeon: 'Dra. Juliana Ferreira', status: 'green', notes: 'Implante de marcapasso' },
-    { off: 2, h: '12:00', service: 'Bloqueio', patient: '', room: '', surgeon: '', status: 'gray', notes: 'Higienização' },
-    { off: 3, h: '08:00', service: 'Neurologia', patient: 'Juliana Ferreira Lopes', room: 'Sala 04', surgeon: 'Dr. Roberto Almeida', status: 'green', notes: 'Descompressão microvascular' },
-    { off: 3, h: '12:00', service: 'Bloqueio', patient: '', room: '', surgeon: '', status: 'gray', notes: 'Higienização' },
-    { off: 4, h: '10:00', service: 'Ortopedia', patient: 'Renato Borges', room: 'Sala 02', surgeon: 'Dr. Carlos Mendes', status: 'yellow', notes: 'Artroplastia total de quadril' },
+    { off: 0, h: '14:00', service: 'Colonoscopia', patient: 'Pedro Henrique Souza', room: 'Sala Norte 01', surgeon: 'Dr. Paulo Mendes', status: 'yellow', notes: '' },
+    { off: 0, h: '16:00', service: 'Oftalmologia', patient: 'Maria Aparecida Santos', room: 'Sala 02', surgeon: 'Dr. Ricardo Alves', status: 'green', notes: '' },
   ];
 
   const appts = {};
