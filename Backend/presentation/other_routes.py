@@ -4,10 +4,12 @@ from sqlalchemy import func
 from pydantic import BaseModel
 from typing import List
 from core.database import get_db
-from infrastructure.models import Sala, Paciente, Insumo, Agendamento
-from .schemas import SalaSchema, PacienteSchema, InsumoSchema
+from infrastructure.models import Sala, Paciente, Insumo, Agendamento, Usuario, Filial
+from .schemas import SalaSchema, PacienteSchema, InsumoSchema, UsuarioResponse, UsuarioCreate, UsuarioUpdate, FilialResponse
+from core.deps import get_current_user
+from core.security import get_password_hash
 
-router = APIRouter(prefix="/api", tags=["auxiliary"])
+router = APIRouter(prefix="/api/v2", tags=["auxiliary"], dependencies=[Depends(get_current_user)])
 
 # --- SALAS ---
 @router.get("/salas", response_model=List[SalaSchema])
@@ -152,3 +154,62 @@ def get_relatorios(db: Session = Depends(get_db)):
         "total_pacientes": total_pacientes,
         "total_salas": total_salas,
     }
+
+# --- FILIAIS ---
+@router.get("/filiais", response_model=List[FilialResponse])
+def get_filiais(db: Session = Depends(get_db)):
+    return db.query(Filial).all()
+
+# --- USUARIOS ---
+@router.get("/usuarios", response_model=List[UsuarioResponse])
+def get_usuarios(db: Session = Depends(get_db)):
+    return db.query(Usuario).all()
+
+@router.post("/usuarios", response_model=UsuarioResponse)
+def create_usuario(user_data: UsuarioCreate, db: Session = Depends(get_db)):
+    # Check if email already exists
+    if db.query(Usuario).filter(Usuario.email == user_data.email).first():
+        raise HTTPException(status_code=400, detail="Email já cadastrado")
+    
+    db_user = Usuario(
+        nome=user_data.nome,
+        email=user_data.email,
+        senha_hash=get_password_hash(user_data.password),
+        tipo=user_data.tipo,
+        crm=user_data.crm,
+        filial_id=user_data.filial_id,
+        ativo=True
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+@router.put("/usuarios/{user_id}", response_model=UsuarioResponse)
+def update_usuario(user_id: int, user_data: UsuarioUpdate, db: Session = Depends(get_db)):
+    db_user = db.query(Usuario).filter(Usuario.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    if user_data.nome is not None: db_user.nome = user_data.nome
+    if user_data.email is not None: db_user.email = user_data.email
+    if user_data.password is not None: db_user.senha_hash = get_password_hash(user_data.password)
+    if user_data.tipo is not None: db_user.tipo = user_data.tipo
+    if user_data.crm is not None: db_user.crm = user_data.crm
+    if user_data.filial_id is not None: db_user.filial_id = user_data.filial_id
+    if user_data.ativo is not None: db_user.ativo = user_data.ativo
+    
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+@router.delete("/usuarios/{user_id}")
+def delete_usuario(user_id: int, db: Session = Depends(get_db)):
+    db_user = db.query(Usuario).filter(Usuario.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Soft delete
+    db_user.ativo = False
+    db.commit()
+    return {"status": "success"}

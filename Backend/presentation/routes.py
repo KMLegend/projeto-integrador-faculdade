@@ -7,8 +7,9 @@ from application.create_appointment import CreateAppointmentUseCase
 from application.update_appointment import UpdateAppointmentStatusUseCase
 from application.delete_appointment import DeleteAppointmentUseCase
 from .schemas import AppointmentCreateRequest, StatusUpdateRequest
+from core.deps import get_current_user
 
-router = APIRouter(prefix="/api/appointments", tags=["appointments"])
+router = APIRouter(prefix="/api/v2/appointments", tags=["appointments"], dependencies=[Depends(get_current_user)])
 
 def get_repository(db: Session = Depends(get_db)):
     return SQLAppointmentRepository(db)

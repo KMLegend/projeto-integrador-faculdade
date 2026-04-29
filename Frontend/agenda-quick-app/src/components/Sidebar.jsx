@@ -9,7 +9,7 @@ import './Sidebar.css';
  * Props:
  * - onToast(msg, type): callback para exibir notificação
  */
-export default function Sidebar({ onToast, currentView, setCurrentView }) {
+export default function Sidebar({ onToast, currentView, setCurrentView, user, onLogout }) {
   return (
     <aside className="sidebar">
       <div className="logo">
@@ -34,11 +34,11 @@ export default function Sidebar({ onToast, currentView, setCurrentView }) {
       </div>
 
       {/* Perfil do Usuário */}
-      <div className="profile-card" onClick={() => onToast('👤 Perfil de Dra. Ana Silva', 'success')}>
-        <div className="avatar">A</div>
+      <div className="profile-card" onClick={() => onToast(`👤 Perfil de ${user?.name || 'Usuário'}`, 'success')}>
+        <div className="avatar">{user?.name?.charAt(0) || 'U'}</div>
         <div className="profile-info">
-          <div className="profile-name">Dra. Ana Silva</div>
-          <div className="profile-role">Cirurgiã Chefe</div>
+          <div className="profile-name">{user?.name || 'Usuário'}</div>
+          <div className="profile-role">{user?.role || 'Acesso'}</div>
         </div>
         <span className="chevron">▾</span>
       </div>
@@ -62,19 +62,23 @@ export default function Sidebar({ onToast, currentView, setCurrentView }) {
       </a>
 
       <div className="nav-label" style={{ marginTop: 8 }}>Sistema</div>
-      <a className="nav-item" href="#" onClick={e => { e.preventDefault(); onToast('🔐 Permissões — em desenvolvimento', 'success'); }}>
-        <span className="icon">🔐</span>Permissões
+      <a className={`nav-item ${currentView === 'usuarios' ? 'active' : ''}`} href="#" onClick={e => { e.preventDefault(); setCurrentView('usuarios'); }}>
+        <span className="icon">👤</span>Usuários
       </a>
       <a className="nav-item" href="#" onClick={e => { e.preventDefault(); onToast('⚙️ Configurações — em desenvolvimento', 'success'); }}>
         <span className="icon">⚙️</span>Configurações
+      </a>
+      
+      <a className="nav-item" href="#" onClick={e => { e.preventDefault(); onLogout(); }} style={{ color: '#ef4444' }}>
+        <span className="icon">🚪</span>Sair (Logout)
       </a>
 
       {/* Rodapé */}
       <div className="sidebar-footer">
         <div className="profile-card" style={{ margin: 0 }}>
-          <div className="avatar" style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)' }}>A</div>
+          <div className="avatar" style={{ background: 'linear-gradient(135deg,#22c55e,#16a34a)' }}>{user?.name?.charAt(0) || 'U'}</div>
           <div className="profile-info">
-            <div className="profile-name">Dra. Ana Silva</div>
+            <div className="profile-name">{user?.name}</div>
             <div className="profile-role">Online agora</div>
           </div>
           <span style={{ color: '#22c55e', fontSize: 18 }}>●</span>

@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 
-export default function RelatoriosPage({ onToast }) {
+export default function RelatoriosPage({ onToast, token }) {
   const [stats, setStats] = useState(null);
   
   useEffect(() => {
-    fetch('http://localhost:8000/api/relatorios')
+    fetch('http://localhost:8000/api/v2/relatorios', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
       .then(res => res.json())
       .then(data => setStats(data))
       .catch(err => onToast('Erro ao carregar relatórios', 'error'));
-  }, [onToast]);
+  }, [onToast, token]);
 
   return (
     <div style={{ backgroundColor: '#1e293b', padding: 24, borderRadius: 12, color: '#fff' }}>

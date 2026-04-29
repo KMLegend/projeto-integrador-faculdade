@@ -13,15 +13,23 @@ import SalasPage from './pages/SalasPage';
 import PacientesPage from './pages/PacientesPage';
 import InsumosPage from './pages/InsumosPage';
 import RelatoriosPage from './pages/RelatoriosPage';
+import UsuariosPage from './pages/UsuariosPage';
 
 export default function App() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const API_URL = 'http://localhost:8000/api/appointments';
+  const API_URL = 'http://localhost:8000/api/v2/appointments';
 
   // ── Authentication State ──
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    const savedToken = localStorage.getItem('token');
+    if (savedUser && savedToken) {
+      return { ...JSON.parse(savedUser), token: savedToken };
+    }
+    return null;
+  });
 
   // ── Appointments State ──
   const [appointments, setAppointments] = useState({});
@@ -47,7 +55,11 @@ export default function App() {
 
   const fetchAppointments = useCallback(async () => {
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(API_URL, {
+        headers: {
+          'Authorization': `Bearer ${user?.token}`
+        }
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -87,7 +99,10 @@ export default function App() {
     try {
       const resp = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.token}`
+        },
         body: JSON.stringify({ key, data })
       });
       if (resp.ok) {
@@ -107,7 +122,10 @@ export default function App() {
     try {
       const resp = await fetch(`${API_URL}/${key}/status`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user?.token}`
+        },
         body: JSON.stringify({ status: newStatus })
       });
       if (resp.ok) {
@@ -123,7 +141,10 @@ export default function App() {
   async function handleDelete(key) {
     try {
       const resp = await fetch(`${API_URL}/${key}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${user?.token}`
+        }
       });
       if (resp.ok) {
         fetchAppointments();
@@ -133,6 +154,12 @@ export default function App() {
     } catch (e) {
       showToast('❌ Erro ao cancelar agendamento', 'error');
     }
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
   }
 
   if (!user) {
@@ -155,18 +182,26 @@ export default function App() {
       </>
     );
   } else if (currentView === 'salas') {
-    MainContent = <SalasPage onToast={showToast} />;
+    MainContent = <SalasPage onToast={showToast} token={user.token} />;
   } else if (currentView === 'pacientes') {
-    MainContent = <PacientesPage onToast={showToast} />;
+    MainContent = <PacientesPage onToast={showToast} token={user.token} />;
   } else if (currentView === 'insumos') {
-    MainContent = <InsumosPage onToast={showToast} />;
+    MainContent = <InsumosPage onToast={showToast} token={user.token} />;
   } else if (currentView === 'relatorios') {
-    MainContent = <RelatoriosPage onToast={showToast} />;
+    MainContent = <RelatoriosPage onToast={showToast} token={user.token} />;
+  } else if (currentView === 'usuarios') {
+    MainContent = <UsuariosPage onToast={showToast} token={user.token} />;
   }
 
   return (
     <>
-      <Sidebar onToast={showToast} currentView={currentView} setCurrentView={setCurrentView} />
+      <Sidebar 
+        onToast={showToast} 
+        currentView={currentView} 
+        setCurrentView={setCurrentView} 
+        user={user}
+        onLogout={handleLogout}
+      />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         <Topbar onSearch={setSearchTerm} onToast={showToast} />
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 24 }}>

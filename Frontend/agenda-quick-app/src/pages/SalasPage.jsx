@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import '../components/TableComponents.css';
 
-export default function SalasPage({ onToast }) {
+export default function SalasPage({ onToast, token }) {
   const [salas, setSalas] = useState([]);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -10,7 +10,9 @@ export default function SalasPage({ onToast }) {
   const fileInputRef = useRef(null);
 
   const fetchSalas = () => {
-    fetch('http://localhost:8000/api/salas')
+    fetch('http://localhost:8000/api/v2/salas', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
       .then(res => res.json())
       .then(data => setSalas(data))
       .catch(err => onToast('Erro ao carregar salas', 'error'));
@@ -41,12 +43,16 @@ export default function SalasPage({ onToast }) {
 
     const method = editingSala ? 'PUT' : 'POST';
     const url = editingSala 
-      ? `http://localhost:8000/api/salas/${editingSala.id}`
-      : `http://localhost:8000/api/salas`;
+      ? `http://localhost:8000/api/v2/salas/${editingSala.id}`
+      : `http://localhost:8000/api/v2/salas`;
 
     try {
       const resp = await fetch(url, {
-        method, headers: { 'Content-Type': 'application/json' },
+        method, 
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(data)
       });
       if (resp.ok) {
@@ -63,7 +69,10 @@ export default function SalasPage({ onToast }) {
   const handleDelete = async () => {
     try {
         for (let id of selectedIds) {
-            await fetch(`http://localhost:8000/api/salas/${id}`, { method: 'DELETE' });
+            await fetch(`http://localhost:8000/api/v2/salas/${id}`, { 
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
         }
         onToast('Salas removidas com sucesso', 'success');
         setSelectedIds(new Set());
@@ -102,9 +111,12 @@ export default function SalasPage({ onToast }) {
              });
              if(parsed[0].nome && parsed[0].nome.toLowerCase() === 'nome') parsed.shift();
 
-             const resp = await fetch('http://localhost:8000/api/salas/bulk', {
+             const resp = await fetch('http://localhost:8000/api/v2/salas/bulk', {
                  method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
+                 headers: { 
+                     'Content-Type': 'application/json',
+                     'Authorization': `Bearer ${token}`
+                 },
                  body: JSON.stringify(parsed)
              });
              if(resp.ok) {

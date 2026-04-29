@@ -15,7 +15,7 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [shaking, setShaking] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError('');
 
@@ -25,19 +25,37 @@ export default function Login({ onLogin }) {
       return;
     }
 
-    // Simulação de autenticação (em produção: POST /api/auth/login)
-    // Aceita qualquer email/senha para demonstração
-    if (password.length < 3) {
-      triggerError('Senha inválida. Verifique suas credenciais.');
-      return;
-    }
+    try {
+      const response = await fetch('http://localhost:8000/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
 
-    // Login bem-sucedido
-    onLogin({
-      name: 'Dra. Ana Silva',
-      role: 'Cirurgiã Chefe',
-      email: email,
-    });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.detail || 'Falha na autenticação');
+      }
+
+      const data = await response.json();
+      
+      // Armazena o token para persistência (opcional, mas recomendado)
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('user', JSON.stringify({
+        name: data.user_name,
+        role: data.user_type,
+        email: email
+      }));
+
+      onLogin({
+        name: data.user_name,
+        role: data.user_type,
+        email: email,
+        token: data.access_token
+      });
+    } catch (err) {
+      triggerError(err.message || 'Erro ao conectar ao servidor.');
+    }
   }
 
   function handleSSO() {
