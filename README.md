@@ -21,6 +21,7 @@
 - [Sobre o Projeto](#-sobre-o-projeto)
 - [Funcionalidades](#-funcionalidades)
 - [Arquitetura do Sistema](#-arquitetura-do-sistema)
+- [Autenticação e Segurança](#-autenticação-e-segurança)
 - [Stack Tecnológica](#-stack-tecnológica)
 - [Estrutura de Pastas](#-estrutura-de-pastas)
 - [Modelo de Dados (ER)](#-modelo-de-dados-er)
@@ -110,6 +111,26 @@ O backend segue os princípios da **Clean Architecture**, organizado em camadas 
 ```
 Frontend (React) ──HTTP──▶ FastAPI Router ──▶ Use Case ──▶ Repository ──▶ MySQL
 ```
+
+---
+
+## 🔐 Autenticação e Segurança
+
+Para garantir a integridade dos dados e o acesso restrito às funcionalidades do sistema, implementamos um fluxo robusto de autenticação:
+
+### 🛡️ Por que Bcrypt?
+As senhas dos usuários **nunca** são armazenadas em texto plano. Utilizamos o algoritmo **Bcrypt** para realizar o hashing das senhas antes de salvá-las no banco de dados.
+- **Salt Nativo:** O Bcrypt gera automaticamente um *salt* único para cada senha, protegendo contra ataques de dicionário e *rainbow tables*.
+- **Work Factor:** Permite ajustar o custo computacional do hash, tornando ataques de força bruta extremamente lentos e inviáveis.
+
+### 🎫 Autenticação via JWT (JSON Web Tokens)
+Adotamos o padrão **JWT** para o gerenciamento de sessões de forma *stateless*:
+- **Escalabilidade:** O servidor não precisa armazenar sessões em memória, validando o acesso apenas pela assinatura do token.
+- **Segurança de Rota:** Todas as requisições para o backend (exceto o login) exigem o cabeçalho `Authorization: Bearer <token>`. O backend utiliza uma chave secreta para validar a integridade do token em cada chamada.
+- **Persistência:** O frontend armazena o token de forma segura para manter o usuário conectado entre sessões.
+
+### 🔒 Proteção de Endpoints
+Todas as rotas da API são protegidas por uma camada de dependência no FastAPI que verifica a validade do token JWT antes de executar qualquer lógica de negócio, garantindo que apenas usuários autenticados possam visualizar ou manipular dados.
 
 ---
 

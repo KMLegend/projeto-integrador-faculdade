@@ -6,6 +6,7 @@ import traceback
 try:
     from presentation.routes import router
     from presentation.other_routes import router as other_router
+    from presentation.auth import router as auth_router
     print("Successfully imported presentation.routes")
 except Exception as e:
     print("FAILED to import presentation.routes")
@@ -22,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
 app.include_router(router)
 app.include_router(other_router)
 

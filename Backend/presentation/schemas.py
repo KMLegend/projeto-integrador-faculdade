@@ -50,3 +50,49 @@ class InsumoSchema(BaseModel):
     
     class Config:
         from_attributes = True
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+    user_name: str
+    user_type: str
+
+class FilialResponse(BaseModel):
+    id: int
+    nome: str
+
+    class Config:
+        from_attributes = True
+
+class UsuarioResponse(BaseModel):
+    id: int
+    nome: str
+    email: str
+    tipo: str
+    crm: Optional[str] = None
+    filial_id: int
+    ativo: bool
+    
+    class Config:
+        from_attributes = True
+
+class UsuarioCreate(BaseModel):
+    nome: str
+    email: str
+    password: str
+    tipo: str
+    crm: Optional[str] = None
+    filial_id: int
+
+class UsuarioUpdate(BaseModel):
+    nome: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+    tipo: Optional[str] = None
+    crm: Optional[str] = None
+    filial_id: Optional[int] = None
+    ativo: Optional[bool] = None

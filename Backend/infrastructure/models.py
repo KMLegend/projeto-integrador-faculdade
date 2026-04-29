@@ -1,21 +1,36 @@
-from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, DateTime, Enum, ForeignKey, Text, Boolean, func
 from sqlalchemy.orm import relationship
 from core.database import Base
 
+
+class Filial(Base):
+    __tablename__ = "filial"
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String(150), nullable=False)
+    cnpj = Column(String(14), unique=True, nullable=False)
+    endereco = Column(String(191))
+    ativo = Column(Boolean, default=True)
+    criado_em = Column(DateTime, server_default=func.now())
 
 class Paciente(Base):
     __tablename__ = "paciente"
     id = Column(Integer, primary_key=True, index=True)
     nome = Column(String(150), nullable=False)
-    filial_id = Column(Integer, nullable=False, default=1)
+    filial_id = Column(Integer, ForeignKey("filial.id"), nullable=False, default=1)
     cpf = Column(String(14))
     telefone = Column(String(20))
 
 class Usuario(Base):
     __tablename__ = "usuario"
     id = Column(Integer, primary_key=True, index=True)
+    filial_id = Column(Integer, ForeignKey("filial.id"), nullable=False, default=1)
     nome = Column(String(150), nullable=False)
+    email = Column(String(191), nullable=False, unique=True)
+    senha_hash = Column(String(255))
+    crm = Column(String(20))
     tipo = Column(Enum('administrador', 'medico', 'enfermeiro', 'tecnico'))
+    ativo = Column(Boolean, default=True)
+    criado_em = Column(DateTime, server_default=func.now())
 
 class Sala(Base):
     __tablename__ = "sala"

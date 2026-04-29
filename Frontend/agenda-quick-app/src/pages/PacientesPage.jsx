@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import '../components/TableComponents.css';
 
-export default function PacientesPage({ onToast }) {
+export default function PacientesPage({ onToast, token }) {
   const [pacientes, setPacientes] = useState([]);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -10,7 +10,9 @@ export default function PacientesPage({ onToast }) {
   const fileInputRef = useRef(null);
 
   const fetchPacientes = () => {
-    fetch('http://localhost:8000/api/pacientes')
+    fetch('http://localhost:8000/api/v2/pacientes', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
       .then(res => res.json())
       .then(data => setPacientes(data))
       .catch(err => onToast('Erro ao carregar pacientes', 'error'));
@@ -41,12 +43,16 @@ export default function PacientesPage({ onToast }) {
 
     const method = editingPaciente ? 'PUT' : 'POST';
     const url = editingPaciente 
-      ? `http://localhost:8000/api/pacientes/${editingPaciente.id}`
-      : `http://localhost:8000/api/pacientes`;
+      ? `http://localhost:8000/api/v2/pacientes/${editingPaciente.id}`
+      : `http://localhost:8000/api/v2/pacientes`;
 
     try {
       const resp = await fetch(url, {
-        method, headers: { 'Content-Type': 'application/json' },
+        method, 
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(data)
       });
       if (resp.ok) {
@@ -63,7 +69,10 @@ export default function PacientesPage({ onToast }) {
   const handleDelete = async () => {
     try {
         for (let id of selectedIds) {
-            await fetch(`http://localhost:8000/api/pacientes/${id}`, { method: 'DELETE' });
+            await fetch(`http://localhost:8000/api/v2/pacientes/${id}`, { 
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
         }
         onToast('Pacientes removidos', 'success');
         setSelectedIds(new Set());
@@ -102,9 +111,12 @@ export default function PacientesPage({ onToast }) {
              });
              if(parsed[0].nome && parsed[0].nome.toLowerCase() === 'nome') parsed.shift();
 
-             const resp = await fetch('http://localhost:8000/api/pacientes/bulk', {
+             const resp = await fetch('http://localhost:8000/api/v2/pacientes/bulk', {
                  method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
+                 headers: { 
+                     'Content-Type': 'application/json',
+                     'Authorization': `Bearer ${token}`
+                 },
                  body: JSON.stringify(parsed)
              });
              if(resp.ok) {

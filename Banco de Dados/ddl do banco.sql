@@ -280,6 +280,7 @@ CREATE TABLE `insumo` (
   `categoria_id` int unsigned NOT NULL,
   `nome` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
   `unidade_medida` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unidade',
+  `quantidade` int DEFAULT '0',
   `ativo` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_insumo_nome` (`nome`),
@@ -477,6 +478,7 @@ CREATE TABLE `usuario` (
   `filial_id` int unsigned NOT NULL,
   `nome` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
   `email` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `senha_hash` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `crm` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `tipo` enum('administrador','medico','enfermeiro','tecnico') COLLATE utf8mb4_unicode_ci NOT NULL,
   `sso_sub` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -494,7 +496,14 @@ CREATE TABLE `usuario` (
 
 LOCK TABLES `usuario` WRITE;
 /*!40000 ALTER TABLE `usuario` DISABLE KEYS */;
-INSERT INTO `usuario` VALUES (1,1,'Dr. Ricardo Alves','ricardo@hospital.com','CRM-GO-12345','medico',NULL,1,'2026-04-11 00:57:54'),(2,1,'Dra. Fernanda Lima','fernanda@hospital.com','CRM-GO-67890','medico',NULL,1,'2026-04-11 00:57:54'),(3,1,'Enf. Carla Souza','carla@hospital.com',NULL,'enfermeiro',NULL,1,'2026-04-11 00:57:54'),(4,1,'Admin Joao Silva','joao@hospital.com',NULL,'administrador',NULL,1,'2026-04-11 00:57:54'),(5,2,'Dr. Paulo Mendes','paulo@clinica.com','CRM-GO-11111','medico',NULL,1,'2026-04-11 00:57:54'),(6,2,'Enf. Ana Rodrigues','ana@clinica.com',NULL,'enfermeiro',NULL,1,'2026-04-11 00:57:54');
+-- Senha padrao '123456' em bcrypt: $2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/ZfWqI2eF.3OaZ5/XW
+INSERT INTO `usuario` VALUES 
+(1,1,'Dr. Ricardo Alves','ricardo@hospital.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.','CRM-GO-12345','medico',NULL,1,'2026-04-11 00:57:54'),
+(2,1,'Dra. Fernanda Lima','fernanda@hospital.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.','CRM-GO-67890','medico',NULL,1,'2026-04-11 00:57:54'),
+(3,1,'Enf. Carla Souza','carla@hospital.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.',NULL,'enfermeiro',NULL,1,'2026-04-11 00:57:54'),
+(4,1,'Admin Joao Silva','joao@hospital.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.',NULL,'administrador',NULL,1,'2026-04-11 00:57:54'),
+(5,2,'Dr. Paulo Mendes','paulo@clinica.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.','CRM-GO-11111','medico',NULL,1,'2026-04-11 00:57:54'),
+(6,2,'Enf. Ana Rodrigues','ana@clinica.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.',NULL,'enfermeiro',NULL,1,'2026-04-11 00:57:54');
 /*!40000 ALTER TABLE `usuario` ENABLE KEYS */;
 UNLOCK TABLES;
 

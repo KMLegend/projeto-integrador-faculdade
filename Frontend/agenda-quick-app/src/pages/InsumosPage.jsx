@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import '../components/TableComponents.css';
 
-export default function InsumosPage({ onToast }) {
+export default function InsumosPage({ onToast, token }) {
   const [insumos, setInsumos] = useState([]);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -10,7 +10,9 @@ export default function InsumosPage({ onToast }) {
   const fileInputRef = useRef(null);
 
   const fetchInsumos = () => {
-    fetch('http://localhost:8000/api/insumos')
+    fetch('http://localhost:8000/api/v2/insumos', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
       .then(res => res.json())
       .then(data => setInsumos(data))
       .catch(err => onToast('Erro ao carregar insumos', 'error'));
@@ -43,12 +45,16 @@ export default function InsumosPage({ onToast }) {
 
     const method = editingInsumo ? 'PUT' : 'POST';
     const url = editingInsumo 
-      ? `http://localhost:8000/api/insumos/${editingInsumo.id}`
-      : `http://localhost:8000/api/insumos`;
+      ? `http://localhost:8000/api/v2/insumos/${editingInsumo.id}`
+      : `http://localhost:8000/api/v2/insumos`;
 
     try {
       const resp = await fetch(url, {
-        method, headers: { 'Content-Type': 'application/json' },
+        method, 
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(data)
       });
       if (resp.ok) {
@@ -65,7 +71,10 @@ export default function InsumosPage({ onToast }) {
   const handleDelete = async () => {
     try {
         for (let id of selectedIds) {
-            await fetch(`http://localhost:8000/api/insumos/${id}`, { method: 'DELETE' });
+            await fetch(`http://localhost:8000/api/v2/insumos/${id}`, { 
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
         }
         onToast('Insumos removidos', 'success');
         setSelectedIds(new Set());
@@ -110,9 +119,12 @@ export default function InsumosPage({ onToast }) {
              });
              if(parsed[0].nome && parsed[0].nome.toLowerCase() === 'nome') parsed.shift();
 
-             const resp = await fetch('http://localhost:8000/api/insumos/bulk', {
+             const resp = await fetch('http://localhost:8000/api/v2/insumos/bulk', {
                  method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
+                 headers: { 
+                     'Content-Type': 'application/json',
+                     'Authorization': `Bearer ${token}`
+                 },
                  body: JSON.stringify(parsed)
              });
              if(resp.ok) {
