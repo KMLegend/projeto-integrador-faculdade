@@ -294,7 +294,7 @@ CREATE TABLE `insumo` (
 
 LOCK TABLES `insumo` WRITE;
 /*!40000 ALTER TABLE `insumo` DISABLE KEYS */;
-INSERT INTO `insumo` VALUES (1,1,'Propofol 200mg','ampola',1),(2,1,'Lidocaina 2%','frasco',1),(3,2,'Luva cirurgica G','par',1),(4,2,'Curativo esteril 10x10','unidade',1),(5,2,'Seringa 20ml','unidade',1),(6,3,'Bisturi cabo nr 4','unidade',1),(7,4,'Soro fisiologico 500ml','frasco',1);
+INSERT INTO `insumo` VALUES (1,1,'Propofol 200mg','ampola',1,1),(2,1,'Lidocaina 2%','frasco',1,1),(3,2,'Luva cirurgica G','par',1,1),(4,2,'Curativo esteril 10x10','unidade',1,1),(5,2,'Seringa 20ml','unidade',1,1),(6,3,'Bisturi cabo nr 4','unidade',1,1),(7,4,'Soro fisiologico 500ml','frasco',1,1);
 /*!40000 ALTER TABLE `insumo` ENABLE KEYS */;
 UNLOCK TABLES;
 
