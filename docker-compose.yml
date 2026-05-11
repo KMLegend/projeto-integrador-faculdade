@@ -1,15 +1,22 @@
+# Carrega automaticamente o arquivo .env na raiz do projeto
+# Para rodar: docker compose up --build
+
 services:
   db:
     image: mysql:9.1
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: agenda_quick
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     volumes:
+      - db_data:/var/lib/mysql
       - "./Banco de Dados/ddl do banco.sql:/docker-entrypoint-initdb.d/init.sql"
     ports:
-      - "3306:3306"
+      - "${DB_PORT:-3306}:3306"
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -18,8 +25,14 @@ services:
     build:
       context: ./Backend
       dockerfile: Dockerfile
+    restart: unless-stopped
     environment:
-      - DATABASE_URL=mysql+pymysql://root:root@db:3306/agenda_quick
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM:-HS256}
+      - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:5173}
+      - APP_ENV=${APP_ENV:-development}
     ports:
       - "8000:8000"
     depends_on:
@@ -30,9 +43,13 @@ services:
     build:
       context: ./Frontend/agenda-quick-app
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "5173:5173"
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8000}
     depends_on:
       - backend
+
+volumes:
+  db_data:

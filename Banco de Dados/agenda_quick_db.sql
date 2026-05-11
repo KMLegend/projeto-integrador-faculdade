@@ -470,3 +470,326 @@ UPDATE agendamento SET status = 'realizado'  WHERE id = 4;
 
 -- Deve retornar 2 linhas no log
 SELECT * FROM log_agendamento;
+
+
+-- ============================================================
+-- STORED PROCEDURES
+-- ============================================================
+
+DELIMITER $$
+
+-- ============================================================
+-- PROCEDURE 1: Relatório de agendamentos por período e médico
+-- Tipo: Consulta/Relatório complexo
+-- Uso: CALL sp_relatorio_agendamentos('2025-01-01', '2025-12-31', NULL);
+--      CALL sp_relatorio_agendamentos('2025-06-01', '2025-06-30', 2);
+--
+-- Parâmetros:
+--   p_data_inicio  DATE    — início do período (obrigatório)
+--   p_data_fim     DATE    — fim do período    (obrigatório)
+--   p_medico_id    INT     — ID do médico; NULL = todos os médicos
+--
+-- Retorna: lista de agendamentos com totais por status,
+--          nome do paciente, médico, sala e serviço.
+-- ============================================================
+
+CREATE PROCEDURE sp_relatorio_agendamentos(
+    IN p_data_inicio  DATE,
+    IN p_data_fim     DATE,
+    IN p_medico_id    INT UNSIGNED
+)
+BEGIN
+    -- Validação de parâmetros
+    IF p_data_inicio IS NULL OR p_data_fim IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Os parâmetros p_data_inicio e p_data_fim são obrigatórios.';
+    END IF;
+
+    IF p_data_fim < p_data_inicio THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'A data fim não pode ser anterior à data início.';
+    END IF;
+
+    -- Listagem detalhada de agendamentos no período
+    SELECT
+        a.id                                                    AS id_agendamento,
+        p.nome                                                  AS paciente,
+        u.nome                                                  AS medico,
+        s.nome                                                  AS sala,
+        ts.nome                                                 AS servico,
+        DATE_FORMAT(a.inicio, '%d/%m/%Y %H:%i')                AS data_hora_inicio,
+        DATE_FORMAT(a.fim,    '%d/%m/%Y %H:%i')                AS data_hora_fim,
+        a.status,
+        a.observacoes
+    FROM   agendamento a
+    JOIN   paciente    p  ON p.id  = a.paciente_id
+    JOIN   usuario     u  ON u.id  = a.medico_id
+    JOIN   sala        s  ON s.id  = a.sala_id
+    JOIN   tipo_servico ts ON ts.id = a.tipo_servico_id
+    WHERE  a.inicio >= p_data_inicio
+      AND  a.inicio <  DATE_ADD(p_data_fim, INTERVAL 1 DAY)
+      AND  (p_medico_id IS NULL OR a.medico_id = p_medico_id)
+    ORDER  BY a.inicio;
+
+    -- Resumo por status no período
+    SELECT
+        a.status,
+        COUNT(*) AS total
+    FROM  agendamento a
+    WHERE a.inicio >= p_data_inicio
+      AND a.inicio <  DATE_ADD(p_data_fim, INTERVAL 1 DAY)
+      AND (p_medico_id IS NULL OR a.medico_id = p_medico_id)
+    GROUP BY a.status
+    ORDER BY a.status;
+END$$
+
+
+-- ============================================================
+-- PROCEDURE 2: Reservar insumos para um agendamento (transacional)
+-- Tipo: Operação transacional com controle de estoque
+-- Uso: CALL sp_reservar_insumos(1, 3, 2);
+--      (agendamento_id=1, insumo_id=3, quantidade=2)
+--
+-- Lógica:
+--   1. Verifica se o agendamento existe e está ativo (não cancelado)
+--   2. Verifica disponibilidade no estoque da sala do agendamento
+--   3. Se houver estoque, insere em reserva_insumo e debita do estoque
+--      (o trigger trg_atualiza_estoque faz o débito automaticamente)
+--   4. Registra mensagem de sucesso ou lança erro
+-- ============================================================
+
+CREATE PROCEDURE sp_reservar_insumos(
+    IN p_agendamento_id INT UNSIGNED,
+    IN p_insumo_id      INT UNSIGNED,
+    IN p_quantidade     INT UNSIGNED
+)
+BEGIN
+    DECLARE v_sala_id        INT UNSIGNED DEFAULT 0;
+    DECLARE v_status_agend   VARCHAR(20)  DEFAULT '';
+    DECLARE v_estoque        INT UNSIGNED DEFAULT 0;
+    DECLARE v_nome_insumo    VARCHAR(150) DEFAULT '';
+
+    -- Recupera sala e status do agendamento
+    SELECT sala_id, status
+    INTO   v_sala_id, v_status_agend
+    FROM   agendamento
+    WHERE  id = p_agendamento_id
+    LIMIT  1;
+
+    IF v_sala_id = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Agendamento não encontrado.';
+    END IF;
+
+    IF v_status_agend IN ('cancelado', 'realizado') THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Não é possível reservar insumos para um agendamento cancelado ou já realizado.';
+    END IF;
+
+    -- Recupera nome do insumo para mensagem de erro amigável
+    SELECT nome INTO v_nome_insumo
+    FROM   insumo
+    WHERE  id = p_insumo_id
+    LIMIT  1;
+
+    -- Verifica estoque disponível na sala
+    SELECT COALESCE(quantidade_disponivel, 0)
+    INTO   v_estoque
+    FROM   estoque_sala
+    WHERE  sala_id   = v_sala_id
+      AND  insumo_id = p_insumo_id;
+
+    IF v_estoque < p_quantidade THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = CONCAT(
+                'Estoque insuficiente para o insumo "', v_nome_insumo,
+                '". Disponível: ', v_estoque,
+                ', Solicitado: ', p_quantidade
+            );
+    END IF;
+
+    -- Insere reserva (o trigger trg_atualiza_estoque debita o estoque automaticamente)
+    INSERT INTO reserva_insumo (agendamento_id, insumo_id, quantidade)
+    VALUES (p_agendamento_id, p_insumo_id, p_quantidade);
+
+    SELECT CONCAT(
+        'Reserva realizada com sucesso: ', p_quantidade, ' unidade(s) de "',
+        v_nome_insumo, '" reservada(s) para o agendamento #', p_agendamento_id
+    ) AS mensagem;
+END$$
+
+DELIMITER ;
+
+-- ============================================================
+-- EXEMPLOS DE USO DAS STORED PROCEDURES
+-- ============================================================
+
+-- Relatório de todos os agendamentos de junho/2025:
+-- CALL sp_relatorio_agendamentos('2025-06-01', '2025-06-30', NULL);
+
+-- Relatório do médico com id=1 no segundo semestre de 2025:
+-- CALL sp_relatorio_agendamentos('2025-07-01', '2025-12-31', 1);
+
+-- Reservar 2 unidades do insumo #3 para o agendamento #1:
+-- CALL sp_reservar_insumos(1, 3, 2);
+
+-- ============================================================
+-- STORED PROCEDURES (Etapa 10 do Roteiro)
+-- ============================================================
+
+DELIMITER $$
+
+-- ============================================================
+-- PROCEDURE 1: Relatorio de agendamentos por periodo e medico
+-- Tipo: Consulta/Relatorio complexo
+-- Uso:
+--   CALL sp_relatorio_agendamentos('2025-01-01', '2025-12-31', NULL);
+--   CALL sp_relatorio_agendamentos('2025-06-01', '2025-06-30', 2);
+--
+-- Parametros:
+--   p_data_inicio  DATE   -- inicio do periodo (obrigatorio)
+--   p_data_fim     DATE   -- fim do periodo    (obrigatorio)
+--   p_medico_id    INT    -- ID do medico; NULL = todos os medicos
+--
+-- Retorna:
+--   Resultado 1: listagem detalhada de agendamentos no periodo
+--   Resultado 2: resumo de totais agrupados por status
+-- ============================================================
+
+CREATE PROCEDURE sp_relatorio_agendamentos(
+    IN p_data_inicio  DATE,
+    IN p_data_fim     DATE,
+    IN p_medico_id    INT UNSIGNED
+)
+BEGIN
+    IF p_data_inicio IS NULL OR p_data_fim IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Os parametros p_data_inicio e p_data_fim sao obrigatorios.';
+    END IF;
+
+    IF p_data_fim < p_data_inicio THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'A data fim nao pode ser anterior a data inicio.';
+    END IF;
+
+    -- Resultado 1: listagem detalhada
+    SELECT
+        a.id                                         AS id_agendamento,
+        p.nome                                       AS paciente,
+        u.nome                                       AS medico,
+        s.nome                                       AS sala,
+        ts.nome                                      AS servico,
+        DATE_FORMAT(a.inicio, '%d/%m/%Y %H:%i')      AS data_hora_inicio,
+        DATE_FORMAT(a.fim,    '%d/%m/%Y %H:%i')      AS data_hora_fim,
+        a.status,
+        COALESCE(a.observacoes, '')                  AS observacoes
+    FROM   agendamento  a
+    JOIN   paciente     p  ON p.id   = a.paciente_id
+    JOIN   usuario      u  ON u.id   = a.medico_id
+    JOIN   sala         s  ON s.id   = a.sala_id
+    JOIN   tipo_servico ts ON ts.id  = a.tipo_servico_id
+    WHERE  a.inicio >= p_data_inicio
+      AND  a.inicio <  DATE_ADD(p_data_fim, INTERVAL 1 DAY)
+      AND  (p_medico_id IS NULL OR a.medico_id = p_medico_id)
+    ORDER  BY a.inicio;
+
+    -- Resultado 2: resumo por status
+    SELECT
+        a.status,
+        COUNT(*) AS total
+    FROM  agendamento a
+    WHERE a.inicio >= p_data_inicio
+      AND a.inicio <  DATE_ADD(p_data_fim, INTERVAL 1 DAY)
+      AND (p_medico_id IS NULL OR a.medico_id = p_medico_id)
+    GROUP  BY a.status
+    ORDER  BY a.status;
+END$$
+
+
+-- ============================================================
+-- PROCEDURE 2: Reservar insumos para um agendamento (transacional)
+-- Tipo: Operacao transacional com controle de estoque
+-- Uso:
+--   CALL sp_reservar_insumos(1, 3, 2);
+--   (agendamento_id=1, insumo_id=3, quantidade=2)
+--
+-- Logica:
+--   1. Verifica se o agendamento existe e nao esta cancelado/realizado
+--   2. Verifica disponibilidade no estoque da sala do agendamento
+--   3. Insere em reserva_insumo (trigger trg_atualiza_estoque debita automaticamente)
+--   4. Retorna mensagem de sucesso ou lanca erro com detalhe
+-- ============================================================
+
+CREATE PROCEDURE sp_reservar_insumos(
+    IN p_agendamento_id INT UNSIGNED,
+    IN p_insumo_id      INT UNSIGNED,
+    IN p_quantidade     INT UNSIGNED
+)
+BEGIN
+    DECLARE v_sala_id      INT UNSIGNED DEFAULT 0;
+    DECLARE v_status_agend VARCHAR(20)  DEFAULT '';
+    DECLARE v_estoque      INT UNSIGNED DEFAULT 0;
+    DECLARE v_nome_insumo  VARCHAR(150) DEFAULT '';
+
+    -- Recupera sala e status do agendamento
+    SELECT sala_id, status
+    INTO   v_sala_id, v_status_agend
+    FROM   agendamento
+    WHERE  id = p_agendamento_id
+    LIMIT  1;
+
+    IF v_sala_id = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Agendamento nao encontrado.';
+    END IF;
+
+    IF v_status_agend IN ('cancelado', 'realizado') THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Nao e possivel reservar insumos para agendamento cancelado ou realizado.';
+    END IF;
+
+    -- Nome do insumo para mensagem amigavel
+    SELECT nome INTO v_nome_insumo
+    FROM   insumo
+    WHERE  id = p_insumo_id
+    LIMIT  1;
+
+    -- Verifica estoque disponivel na sala
+    SELECT COALESCE(quantidade_disponivel, 0)
+    INTO   v_estoque
+    FROM   estoque_sala
+    WHERE  sala_id   = v_sala_id
+      AND  insumo_id = p_insumo_id;
+
+    IF v_estoque < p_quantidade THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = CONCAT(
+                'Estoque insuficiente para "', v_nome_insumo,
+                '". Disponivel: ', v_estoque,
+                ', Solicitado: ', p_quantidade
+            );
+    END IF;
+
+    -- Insere reserva (trigger trg_atualiza_estoque debita o estoque)
+    INSERT INTO reserva_insumo (agendamento_id, insumo_id, quantidade)
+    VALUES (p_agendamento_id, p_insumo_id, p_quantidade);
+
+    SELECT CONCAT(
+        'Reserva realizada: ', p_quantidade, ' unidade(s) de "',
+        v_nome_insumo, '" reservada(s) para o agendamento #', p_agendamento_id
+    ) AS mensagem;
+END$$
+
+DELIMITER ;
+
+-- ============================================================
+-- EXEMPLOS DE USO
+-- ============================================================
+-- Todos os agendamentos de junho/2025:
+--   CALL sp_relatorio_agendamentos('2025-06-01', '2025-06-30', NULL);
+--
+-- Agendamentos do medico id=1 no 2o semestre:
+--   CALL sp_relatorio_agendamentos('2025-07-01', '2025-12-31', 1);
+--
+-- Reservar 2 unidades do insumo #3 para o agendamento #1:
+--   CALL sp_reservar_insumos(1, 3, 2);

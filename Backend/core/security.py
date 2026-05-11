@@ -1,12 +1,14 @@
+import os
 from datetime import datetime, timedelta
 from typing import Any, Union
 from jose import jwt
 from passlib.context import CryptContext
 
 # Configurações do JWT
-SECRET_KEY = "sua_chave_secreta_super_segura" # Em produção, use uma variável de ambiente
+# Em produção: defina a variável de ambiente JWT_SECRET_KEY com uma chave forte
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "agenda-quick-chave-padrao-trocar-em-producao")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

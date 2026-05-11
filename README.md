@@ -2,7 +2,7 @@
   <h1 align="center">🏥 Agenda Quick</h1>
   <p align="center">
     <strong>Sistema de Agendamento Cirúrgico Hospitalar</strong><br/>
-    Projeto Integrador — FPM ( Faculdade de Principios Militares )
+    Projeto Integrador — FPM (Faculdade de Princípios Militares)
   </p>
 </p>
 
@@ -19,16 +19,16 @@
 ## 📋 Índice
 
 - [Sobre o Projeto](#-sobre-o-projeto)
-- [Funcionalidades](#-funcionalidades)
+- [Cumprimento do Roteiro Total](#-cumprimento-do-roteiro-total)
 - [Arquitetura do Sistema](#-arquitetura-do-sistema)
 - [Autenticação e Segurança](#-autenticação-e-segurança)
+- [Banco de Dados](#-banco-de-dados)
 - [Stack Tecnológica](#-stack-tecnológica)
 - [Estrutura de Pastas](#-estrutura-de-pastas)
-- [Modelo de Dados (ER)](#-modelo-de-dados-er)
 - [Endpoints da API](#-endpoints-da-api)
 - [Como Executar](#-como-executar)
 - [Variáveis de Ambiente](#-variáveis-de-ambiente)
-- [Screenshots](#-screenshots)
+- [Usuários de Teste](#-usuários-de-teste)
 - [Autores](#-autores)
 
 ---
@@ -37,116 +37,355 @@
 
 O **Agenda Quick** é uma aplicação web full-stack para gerenciamento de agendamentos cirúrgicos em ambiente hospitalar. O sistema permite o cadastro e controle de **salas cirúrgicas**, **pacientes**, **insumos médicos** e a gestão completa de **agendamentos de cirurgias**, com visualização em formato de calendário semanal.
 
-O projeto foi desenvolvido como parte do **Projeto Integrador** da FPM ( Faculdade de Principios Militares ), aplicando conceitos de **Clean Architecture**, **Object-Relational Mapping (ORM)** com SQLAlchemy, e containerização com **Docker**.
+Desenvolvido como **Projeto Integrador** da FPM, aplicando **Clean Architecture**, **SOLID**, **Object Calisthenics**, ORM com SQLAlchemy e containerização com Docker.
 
 ---
 
-## ✨ Funcionalidades
+## ✅ Cumprimento do Roteiro Total
 
-### 📅 Agenda (Módulo Principal)
-- Visualização de cirurgias em grade semanal (calendário interativo)
-- Agendamento de novas cirurgias com seleção de paciente, médico, sala e tipo de serviço
-- Alteração de status do agendamento (`agendado`, `confirmado`, `realizado`, `cancelado`, `no_show`)
-- Exclusão de agendamentos
-- Painel de detalhes ao selecionar um agendamento
+Esta seção detalha cada etapa do roteiro do professor e o que foi implementado.
 
-### 🚪 Salas Cirúrgicas (CRUD Completo)
-- Listagem de todas as salas com status (Ativa / Inativa)
-- Cadastro, edição e exclusão de salas
-- Controle de capacidade por sala
-- **Importação em massa via arquivo CSV**
+---
 
-### 👥 Pacientes (CRUD Completo)
-- Listagem de pacientes com CPF e telefone
-- Cadastro, edição e exclusão de pacientes
-- **Importação em massa via arquivo CSV**
+### Etapa 01 — Formação dos Grupos e Ideia Inicial ✅
 
-### 📦 Insumos e Estoque (CRUD Completo)
-- Listagem de insumos com quantidade em estoque, status e unidade de medida
-- Cadastro, edição e exclusão de insumos
-- Controle de quantidade disponível em tempo real
-- **Importação em massa via arquivo CSV**
+**Projeto:** Agenda Quick — Sistema de Agendamento de Centros Cirúrgicos
 
-### 📊 Relatórios (Dashboard)
-- Total de agendamentos registrados
-- Cirurgias realizadas vs. canceladas
-- Total de pacientes cadastrados
-- Total de salas cirúrgicas disponíveis
+**Área de atuação:** Saúde / Hospitalar
 
-### 🎨 Interface
-- Design dark-mode moderno e responsivo
-- Seleção múltipla de registros com checkboxes
-- Barra de ações flutuante (Floating Action Bar) para edição/exclusão em lote
-- Modais de formulário para criação e edição de registros
-- Sistema de notificações toast para feedback do usuário
-- Tela de login simulada com seleção de perfil médico
+**Descrição:** Sistema web para gestão de agendamentos cirúrgicos, permitindo que equipes hospitalares registrem, acompanhem e controlem cirurgias em salas operatórias, com controle de pacientes, médicos, insumos e relatórios gerenciais.
+
+**Problema resolvido:** Hospitais que ainda gerenciam agendamentos cirúrgicos em planilhas ou sistemas legados perdem tempo, cometem conflitos de horário e não têm visibilidade do estoque de insumos em tempo real.
+
+---
+
+### Etapa 02 — Descrição da Ideia + Persona + Requisitos Funcionais ✅
+
+**Persona principal:** Dr. Carlos Mendes, 42 anos, Cirurgião Geral. Acessa o sistema antes das cirurgias para confirmar sala, verificar disponibilidade de insumos e consultar o histórico do paciente. Precisa de uma interface rápida que funcione no celular e no computador do plantão.
+
+**Requisitos Funcionais implementados (seleção dos 20):**
+
+| # | Requisito |
+|---|-----------|
+| RF01 | O sistema deve permitir que o usuário faça login com e-mail e senha |
+| RF02 | O sistema deve gerar um token JWT válido ao realizar login com sucesso |
+| RF03 | O sistema deve permitir visualizar agendamentos em calendário semanal |
+| RF04 | O sistema deve permitir criar um novo agendamento com paciente, médico, sala e serviço |
+| RF05 | O sistema deve permitir alterar o status do agendamento (agendado/confirmado/realizado/cancelado/no_show) |
+| RF06 | O sistema deve permitir excluir agendamentos |
+| RF07 | O sistema deve exibir painel de detalhes ao clicar em um agendamento |
+| RF08 | O sistema deve listar salas cirúrgicas com paginação |
+| RF09 | O sistema deve permitir criar, editar e desativar salas cirúrgicas |
+| RF10 | O sistema deve impedir exclusão de sala com agendamentos futuros ativos |
+| RF11 | O sistema deve listar pacientes com filtro por nome e paginação |
+| RF12 | O sistema deve validar CPF único ao cadastrar paciente |
+| RF13 | O sistema deve listar insumos com paginação e filtro por nome |
+| RF14 | O sistema deve impedir cadastro de insumos com nome duplicado |
+| RF15 | O sistema deve impedir quantidade negativa ao atualizar estoque de insumo |
+| RF16 | O sistema deve permitir cadastrar usuários com tipos: administrador, médico, enfermeiro, técnico |
+| RF17 | O sistema deve restringir ações de cadastro/edição/exclusão de usuários a administradores |
+| RF18 | O sistema deve exibir dashboard com totais de agendamentos por status |
+| RF19 | O sistema deve permitir filtrar relatórios por período, status e médico |
+| RF20 | O sistema deve impedir que o usuário desative a própria conta |
+
+---
+
+### Etapa 03 — Telas em Sequência ✅
+
+O projeto possui as seguintes telas funcionais com navegação entre si:
+
+1. **Login** — autenticação com e-mail e senha, conectada ao backend
+2. **Agenda (Calendário)** — grade semanal com agendamentos por hora
+3. **Modal de Nova Cirurgia** — formulário de criação de agendamento
+4. **Painel de Detalhes** — visualização e alteração de status do agendamento
+5. **Salas Cirúrgicas** — tabela CRUD com paginação e ações em lote
+6. **Pacientes** — tabela CRUD com busca por nome e paginação
+7. **Insumos** — tabela CRUD com controle de estoque
+8. **Relatórios** — dashboard com filtros e listagem detalhada
+9. **Usuários** — gerenciamento de usuários (exclusivo para administradores)
+
+> Tecnologia: React 18 + Vite (evolução natural de HTML/CSS/JS para SPA profissional)
+
+---
+
+### Etapa 04 — Modelagem do Banco de Dados (MER) ✅
+
+Diagrama MER criado no MySQL Workbench (`Banco de Dados/agenda_quickMER.mwb`) com **17 tabelas**:
+
+`filial` · `centro_cirurgico` · `sala` · `horario_funcionamento` · `usuario` · `grupo` · `usuario_grupo` · `permissao` · `grupo_permissao` · `paciente` · `tipo_servico` · `agendamento` · `ausencia` · `categoria_insumo` · `insumo` · `reserva_insumo` · `estoque_sala` · `log_agendamento`
+
+Todos os relacionamentos estão representados com chaves primárias, estrangeiras e cardinalidades (1:N e N:N).
+
+---
+
+### Etapa 05 — Banco de Dados Físico: Script SQL (DDL + Dados) ✅
+
+Arquivo: `Banco de Dados/agenda_quick_db.sql`
+
+- **17 tabelas** com DDL completo (PK, FK, UNIQUE, índices, ENUMs)
+- **3 Triggers** com lógica útil de negócio:
+  - `trg_conflito_medico` — impede conflito de horário do médico
+  - `trg_atualiza_estoque` — debita estoque ao reservar insumo
+  - `trg_log_status` — registra log automático de mudança de status
+- **INSERTs** com dados de teste para todas as tabelas principais
+- Código comentado explicando a finalidade de cada trigger
+
+---
+
+### Etapa 06 — Interface Web com Conexão ao Banco + BPMN ✅
+
+- **9 telas funcionais** em React, todas conectadas ao backend FastAPI + MySQL
+- Operações de leitura e inserção no banco em todas as telas principais
+- Layout responsivo em dark-mode com CSS-in-JS
+- Diagrama BPMN disponível em `MODELO BPMN AGENDA QUICK.png`
+
+---
+
+### Etapa 07 — Autenticação e Segurança ✅
+
+**Decisão técnica: JWT (JSON Web Token)**
+
+Motivo da escolha: JWT é stateless, escalável, não exige armazenamento de sessão no servidor e é o padrão da indústria para APIs REST.
+
+**Decisão técnica: Bcrypt para criptografia de senha**
+
+Motivo da escolha: Bcrypt é resistente a ataques de força bruta por ter custo computacional ajustável, gera salt automático por hash e é mais seguro que MD5/SHA para senhas.
+
+**Implementação:**
+
+```
+POST /auth/login
+  → valida email/senha no banco
+  → verifica senha com bcrypt (passlib)
+  → retorna JWT assinado com HS256
+  → frontend armazena em localStorage
+  → todas as rotas exigem: Authorization: Bearer <token>
+```
+
+**Controle de acesso por tipo:**
+- `administrador` — acesso total (CRUD de usuários, salas, insumos)
+- `medico` — acesso a agendamentos e leitura geral
+- `enfermeiro` / `tecnico` — acesso somente leitura a recursos protegidos
+
+**Segurança adicional:**
+- `JWT_SECRET_KEY` lida de variável de ambiente (nunca hardcoded)
+- Usuários inativos (`ativo = false`) são rejeitados mesmo com token válido
+- Admin não pode desativar a própria conta
+
+---
+
+### Etapa 08 — Cronograma de Desenvolvimento ✅
+
+Disponível em planilha Excel separada conforme orientação do professor.
+
+---
+
+### Etapa 09 — Integração Backend + CRUD Completo ✅
+
+**2 CRUDs completos (Create, Read, Update, Delete) com validações:**
+
+**CRUD 1 — Agendamentos**
+
+| Método | Rota | Ação |
+|--------|------|------|
+| GET | `/api/v2/appointments` | Lista todos |
+| POST | `/api/v2/appointments` | Cria agendamento |
+| PUT | `/api/v2/appointments/{key}/status` | Atualiza status |
+| DELETE | `/api/v2/appointments/{key}` | Remove |
+
+**CRUD 2 — Pacientes** (com paginação de 10 por página)
+
+| Método | Rota | Ação |
+|--------|------|------|
+| GET | `/api/v2/pacientes?page=1&page_size=10` | Lista paginada |
+| POST | `/api/v2/pacientes` | Cadastra |
+| PUT | `/api/v2/pacientes/{id}` | Edita |
+| DELETE | `/api/v2/pacientes/{id}` | Remove |
+
+Além dos CRUDs de **Salas**, **Insumos** e **Usuários** com a mesma estrutura.
+
+**Recursos do CRUD:**
+- Paginação padrão de 10 registros por página (`?page=1&page_size=10`)
+- Endpoint `/all` para preenchimento de selects sem paginação
+- Exclusão de usuários via **soft delete** (campo `ativo = false`) — mantém histórico
+- Autenticação JWT obrigatória em todas as rotas
+- Logout funcional com remoção do token do `localStorage`
+
+---
+
+### Etapa 10 — Regras de Negócio, Stored Procedures e Relatórios ✅
+
+**Validações de regras de negócio no backend (camada de serviços):**
+
+| Regra | Onde |
+|-------|------|
+| Nome de sala não pode ser duplicado | `SalaService._verificar_nome_duplicado` |
+| Não remover sala com agendamentos futuros ativos | `SalaService._verificar_agendamentos_futuros` |
+| CPF único por paciente | `PacienteService._verificar_cpf_duplicado` |
+| Não excluir paciente com histórico de agendamentos | `PacienteService._verificar_sem_historico` |
+| Nome de insumo único | `InsumoService._verificar_nome_duplicado` |
+| Quantidade de insumo não pode ser negativa | `InsumoService._validar_quantidade_positiva` |
+| E-mail único por usuário | `UsuarioService._verificar_email_duplicado` |
+| Admin não pode desativar a própria conta | `UsuarioService._verificar_auto_desativacao` |
+| Tipo de usuário deve ser um dos valores válidos | `UsuarioService._validar_tipo` |
+
+**2 Stored Procedures:**
+
+```sql
+-- SP 1: Relatório de agendamentos por período e médico (consulta complexa)
+CALL sp_relatorio_agendamentos('2025-01-01', '2025-12-31', NULL);
+-- Retorna: listagem detalhada + resumo por status
+
+-- SP 2: Reserva transacional de insumos com controle de estoque
+CALL sp_reservar_insumos(1, 3, 2);
+-- Verifica estoque → insere reserva → debita via trigger
+```
+
+**Relatório com filtros (Relatório 1 — Dashboard):**
+- Cards: total, realizadas, confirmadas, agendadas, canceladas, no_show, pacientes, salas
+- Filtros: `?data_inicio=&data_fim=&status=&medico_id=`
+
+**Relatório com listagem (Relatório 2 — Listagem filtrada):**
+- Tabela com: id, paciente, médico, sala, serviço, data/hora, status
+- Exibe até 100 registros com orientação para usar filtros
+
+**Níveis de acesso implementados:**
+
+| Tipo | Permissões |
+|------|-----------|
+| `administrador` | CRUD completo + gestão de usuários |
+| `medico` | Criar/alterar agendamentos, leitura de todos os módulos |
+| `enfermeiro` / `tecnico` | Leitura geral, sem criação de usuários/insumos/salas |
+
+---
+
+### Etapa 11 — Documentação Final ✅
+
+Este README constitui a documentação final do sistema, contendo:
+- Descrição completa de todas as funcionalidades implementadas
+- Estrutura de arquivos e pastas atualizada
+- Tabela de validações de regras de negócio
+- Código e descrição das Stored Procedures
+- Variáveis de ambiente e configuração
+- Instruções de execução com usuários de teste
+
+---
+
+### Etapa 12 — Apresentação Final
+
+Slides disponíveis separadamente. Roteiro da demonstração ao vivo:
+
+1. Login com usuário administrador
+2. Visualização da agenda semanal
+3. Criar novo agendamento (CRUD 1)
+4. Alterar status do agendamento
+5. Cadastrar paciente com validação de CPF (CRUD 2)
+6. Visualizar relatório com filtros aplicados
+7. Demonstrar controle de acesso (login como médico, tentar acessar usuários)
 
 ---
 
 ## 🏗 Arquitetura do Sistema
 
-O backend segue os princípios da **Clean Architecture**, organizado em camadas independentes:
+O backend segue **Clean Architecture** + **SOLID** + **Object Calisthenics**:
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   PRESENTATION                       │
-│          (FastAPI Routes + Pydantic Schemas)          │
-├─────────────────────────────────────────────────────┤
-│                   APPLICATION                        │
-│              (Use Cases / Casos de Uso)               │
-├─────────────────────────────────────────────────────┤
-│                     DOMAIN                           │
-│         (Entities + Value Objects + Interfaces)       │
-├─────────────────────────────────────────────────────┤
-│                  INFRASTRUCTURE                      │
-│           (SQLAlchemy Models + Repositories)          │
-├─────────────────────────────────────────────────────┤
-│                      CORE                            │
-│            (Database Engine + Session)                │
-└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                     PRESENTATION                         │
+│   presentation/routes/  (um arquivo por recurso)         │
+│   salas.py · pacientes.py · insumos.py · usuarios.py     │
+│   relatorios.py · filiais.py · appointments.py           │
+├─────────────────────────────────────────────────────────┤
+│                     APPLICATION                          │
+│   Use Cases (agendamentos) + Services (demais recursos)  │
+│   SalaService · PacienteService · InsumoService          │
+│   UsuarioService · RelatorioService                      │
+├─────────────────────────────────────────────────────────┤
+│                      DOMAIN                              │
+│   Entities · Value Objects · Interface Repository        │
+├─────────────────────────────────────────────────────────┤
+│                   INFRASTRUCTURE                         │
+│   SQLAlchemy Models + SQLAppointmentRepository           │
+├─────────────────────────────────────────────────────────┤
+│                       CORE                               │
+│   database.py · security.py · deps.py                    │
+└─────────────────────────────────────────────────────────┘
 ```
 
-**Fluxo de dados:**
+**Princípios SOLID aplicados:**
 
-```
-Frontend (React) ──HTTP──▶ FastAPI Router ──▶ Use Case ──▶ Repository ──▶ MySQL
-```
+| Princípio | Aplicação |
+|-----------|-----------|
+| **S** — Single Responsibility | Cada rota em seu próprio arquivo; cada Service cuida de um único recurso |
+| **O** — Open/Closed | Services podem ser estendidos sem modificar as rotas |
+| **L** — Liskov Substitution | `AppointmentRepository` é uma interface; `SQLAppointmentRepository` é substituível |
+| **I** — Interface Segregation | `interface_repository.py` define apenas o contrato necessário |
+| **D** — Dependency Inversion | Rotas dependem de abstrações (Services via Depends), não de implementações |
 
 ---
 
 ## 🔐 Autenticação e Segurança
 
-Para garantir a integridade dos dados e o acesso restrito às funcionalidades do sistema, implementamos um fluxo robusto de autenticação:
+### Bcrypt + JWT
 
-### 🛡️ Por que Bcrypt?
-As senhas dos usuários **nunca** são armazenadas em texto plano. Utilizamos o algoritmo **Bcrypt** para realizar o hashing das senhas antes de salvá-las no banco de dados.
-- **Salt Nativo:** O Bcrypt gera automaticamente um *salt* único para cada senha, protegendo contra ataques de dicionário e *rainbow tables*.
-- **Work Factor:** Permite ajustar o custo computacional do hash, tornando ataques de força bruta extremamente lentos e inviáveis.
+As senhas **nunca** são armazenadas em texto plano. O fluxo é:
 
-### 🎫 Autenticação via JWT (JSON Web Tokens)
-Adotamos o padrão **JWT** para o gerenciamento de sessões de forma *stateless*:
-- **Escalabilidade:** O servidor não precisa armazenar sessões em memória, validando o acesso apenas pela assinatura do token.
-- **Segurança de Rota:** Todas as requisições para o backend (exceto o login) exigem o cabeçalho `Authorization: Bearer <token>`. O backend utiliza uma chave secreta para validar a integridade do token em cada chamada.
-- **Persistência:** O frontend armazena o token de forma segura para manter o usuário conectado entre sessões.
+```
+1. POST /auth/login (email + senha)
+2. Backend busca usuário no banco pelo email
+3. Verifica senha com bcrypt.verify (salt automático por hash)
+4. Gera JWT assinado com HS256 + secret_key (variável de ambiente)
+5. Frontend armazena token em localStorage
+6. Todas as requisições incluem: Authorization: Bearer <token>
+7. Backend valida assinatura + verifica se usuário está ativo
+```
 
-### 🔒 Proteção de Endpoints
-Todas as rotas da API são protegidas por uma camada de dependência no FastAPI que verifica a validade do token JWT antes de executar qualquer lógica de negócio, garantindo que apenas usuários autenticados possam visualizar ou manipular dados.
+### Controle de acesso por tipo
+
+```python
+# Rota restrita a administradores
+@router.post("", dependencies=[Depends(require_admin)])
+
+# Rota acessível a qualquer usuário autenticado
+@router.get("", dependencies=[Depends(get_current_user)])
+```
+
+---
+
+## 🗄 Banco de Dados
+
+### Triggers
+
+```sql
+trg_conflito_medico   -- Bloqueia agendamento com conflito de horário
+trg_atualiza_estoque  -- Debita estoque ao registrar reserva de insumo
+trg_log_status        -- Registra log automático de toda mudança de status
+```
+
+### Stored Procedures
+
+```sql
+-- Relatório complexo por período e médico
+CALL sp_relatorio_agendamentos('2025-06-01', '2025-06-30', NULL);
+
+-- Reserva transacional de insumos com verificação de estoque
+CALL sp_reservar_insumos(1, 3, 2);
+```
 
 ---
 
 ## 🛠 Stack Tecnológica
 
-| Camada       | Tecnologia                     | Versão    |
-|:-------------|:-------------------------------|:----------|
-| **Frontend** | React (via Vite)               | 18.x      |
-| **Backend**  | FastAPI                        | 0.109.2   |
-| **ORM**      | SQLAlchemy                     | 2.0.27    |
-| **Validação**| Pydantic                       | 2.6.1     |
-| **Banco**    | MySQL                          | 9.1       |
-| **Driver**   | PyMySQL + cryptography         | 1.1.0     |
-| **Server**   | Uvicorn                        | 0.27.1    |
-| **Container**| Docker + Docker Compose        | —         |
-| **Testes**   | Pytest + HTTPX                 | 8.0.1     |
+| Camada | Tecnologia | Versão |
+|--------|-----------|--------|
+| **Frontend** | React + Vite | 18.x |
+| **Backend** | FastAPI | 0.109.x |
+| **ORM** | SQLAlchemy | 2.0.x |
+| **Validação** | Pydantic v2 | 2.6.x |
+| **Banco** | MySQL | 9.1 |
+| **Auth** | python-jose + passlib (bcrypt) | — |
+| **Server** | Uvicorn | 0.27.x |
+| **Container** | Docker + Docker Compose | — |
 
 ---
 
@@ -155,166 +394,105 @@ Todas as rotas da API são protegidas por uma camada de dependência no FastAPI 
 ```
 projeto-integrador-faculdade/
 │
-├── docker-compose.yml              # Orquestração dos 3 containers
-├── README.md                       # Este arquivo
+├── .env                          # Variáveis de ambiente (NÃO commitar)
+├── .env.example                  # Modelo para configuração (commitar)
+├── .gitignore                    # .env já incluído
+├── docker-compose.yml            # Orquestração com variáveis de ambiente
+├── README.md                     # Este arquivo
+├── MODELO BPMN AGENDA QUICK.png  # Diagrama BPMN do processo
 │
 ├── Banco de Dados/
-│   └── ddl do banco.sql            # Script DDL completo (tabelas, seeds, FKs)
+│   ├── agenda_quickMER.mwb       # Diagrama MER (MySQL Workbench)
+│   └── agenda_quick_db.sql       # DDL completo: 17 tabelas + triggers + SPs + dados
 │
 ├── Backend/
-│   ├── Dockerfile                  # Imagem Python 3.11
-│   ├── requirements.txt            # Dependências pip
-│   ├── main.py                     # Entry point FastAPI
+│   ├── main.py                   # Entry point — registra todos os routers
+│   ├── requirements.txt
+│   ├── Dockerfile
 │   │
 │   ├── core/
-│   │   └── database.py             # Engine SQLAlchemy + SessionLocal
+│   │   ├── database.py           # Engine SQLAlchemy + get_db
+│   │   ├── security.py           # Bcrypt + JWT (chaves via env vars)
+│   │   └── deps.py               # get_current_user · require_admin · require_medico_or_admin
 │   │
 │   ├── domain/
-│   │   ├── entities.py             # Entidade Appointment (dataclass)
-│   │   ├── value_objects.py        # AppointmentStatus, AppointmentKey
-│   │   └── interface_repository.py # Interface abstrata do repositório
+│   │   ├── entities.py           # Entidade Appointment (dataclass)
+│   │   ├── value_objects.py      # AppointmentStatus, AppointmentKey
+│   │   └── interface_repository.py
 │   │
 │   ├── application/
-│   │   ├── create_appointment.py   # Use case: criar agendamento
-│   │   ├── get_appointments.py     # Use case: listar agendamentos
-│   │   ├── update_appointment.py   # Use case: atualizar status
-│   │   └── delete_appointment.py   # Use case: excluir agendamento
+│   │   ├── create_appointment.py
+│   │   ├── get_appointments.py
+│   │   ├── update_appointment.py
+│   │   ├── delete_appointment.py
+│   │   └── services/             # Camada de serviços (regras de negócio)
+│   │       ├── sala_service.py
+│   │       ├── paciente_service.py
+│   │       ├── insumo_service.py
+│   │       ├── usuario_service.py
+│   │       └── relatorio_service.py
 │   │
 │   ├── infrastructure/
-│   │   ├── models.py               # Modelos ORM (Paciente, Sala, Insumo, etc.)
-│   │   └── sql_repository.py       # Implementação concreta do repositório
+│   │   ├── models.py             # 8 modelos ORM mapeados
+│   │   └── sql_repository.py     # Implementação do repositório de agendamentos
 │   │
 │   └── presentation/
-│       ├── routes.py               # Rotas de Agendamentos (Clean Architecture)
-│       ├── other_routes.py         # Rotas CRUD: Salas, Pacientes, Insumos, Relatórios
-│       └── schemas.py              # Schemas Pydantic para validação de requests
+│       ├── auth.py               # POST /auth/login
+│       ├── schemas.py            # Todos os schemas Pydantic
+│       └── routes/               # Um arquivo por recurso (SRP)
+│           ├── appointments.py
+│           ├── salas.py
+│           ├── pacientes.py
+│           ├── insumos.py
+│           ├── usuarios.py
+│           ├── relatorios.py
+│           └── filiais.py
 │
 └── Frontend/
     └── agenda-quick-app/
-        ├── Dockerfile              # Imagem Node.js para Vite dev server
-        ├── package.json            # Dependências npm
-        │
         └── src/
-            ├── main.jsx            # Ponto de entrada React
-            ├── App.jsx             # Componente raiz + roteamento por estado
-            ├── index.css           # Estilos globais (dark theme)
-            │
+            ├── App.jsx
             ├── components/
-            │   ├── Sidebar.jsx     # Menu lateral com navegação
-            │   ├── Topbar.jsx      # Barra superior com busca
-            │   ├── CalendarGrid.jsx# Grade semanal de agendamentos
-            │   ├── AppointmentModal.jsx # Modal de criação de cirurgia
-            │   ├── DetailPanel.jsx # Painel de detalhes do agendamento
-            │   ├── SummaryCards.jsx# Cards de resumo (dashboard inicial)
-            │   ├── Login.jsx       # Tela de login simulada
-            │   ├── Toast.jsx       # Componente de notificação
-            │   └── TableComponents.css # Estilos das tabelas CRUD
-            │
+            │   ├── Login.jsx
+            │   ├── Sidebar.jsx
+            │   ├── Topbar.jsx
+            │   ├── CalendarGrid.jsx
+            │   ├── AppointmentModal.jsx
+            │   ├── DetailPanel.jsx
+            │   ├── SummaryCards.jsx
+            │   └── Toast.jsx
             └── pages/
-                ├── SalasPage.jsx      # CRUD de Salas Cirúrgicas
-                ├── PacientesPage.jsx  # CRUD de Pacientes
-                ├── InsumosPage.jsx    # CRUD de Insumos + Estoque
-                └── RelatoriosPage.jsx # Dashboard de Métricas
+                ├── SalasPage.jsx
+                ├── PacientesPage.jsx
+                ├── InsumosPage.jsx
+                ├── RelatoriosPage.jsx
+                └── UsuariosPage.jsx
 ```
-
----
-
-## 🗄 Modelo de Dados (ER)
-
-As principais tabelas do sistema e seus relacionamentos:
-
-```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│  paciente    │     │  usuario     │     │     sala     │
-├──────────────┤     ├──────────────┤     ├──────────────┤
-│ id (PK)      │     │ id (PK)      │     │ id (PK)      │
-│ nome         │     │ nome         │     │ nome         │
-│ cpf          │     │ tipo (enum)  │     │ centro_id    │
-│ telefone     │     └──────┬───────┘     │ capacidade   │
-│ filial_id    │            │             │ ativo        │
-└──────┬───────┘            │             └──────┬───────┘
-       │                    │                    │
-       └───────────┐  ┌────┘  ┌─────────────────┘
-                   ▼  ▼       ▼
-             ┌──────────────────┐     ┌──────────────┐
-             │   agendamento    │     │ tipo_servico  │
-             ├──────────────────┤     ├──────────────┤
-             │ id (PK)          │     │ id (PK)      │
-             │ paciente_id (FK) │     │ nome         │
-             │ medico_id (FK)   │◄────┤              │
-             │ sala_id (FK)     │     └──────────────┘
-             │ tipo_servico_id  │
-             │ inicio (datetime)│
-             │ fim (datetime)   │
-             │ status (enum)    │
-             │ observacoes      │
-             └──────────────────┘
-
-┌──────────────────┐     ┌──────────────┐     ┌──────────────┐
-│ categoria_insumo │     │    insumo    │     │ estoque_sala │
-├──────────────────┤     ├──────────────┤     ├──────────────┤
-│ id (PK)          │◄────│ categoria_id │     │ sala_id (PK) │
-│ nome             │     │ id (PK)      │◄────│ insumo_id(PK)│
-│ descricao        │     │ nome         │     │ qtd_disponiv │
-└──────────────────┘     │ unidade_med  │     │ atualizado_em│
-                         │ quantidade   │     └──────────────┘
-                         │ ativo        │
-                         └──────────────┘
-```
-
-**Status possíveis do agendamento:**
-`agendado` → `confirmado` → `realizado` | `cancelado` | `no_show`
 
 ---
 
 ## 🌐 Endpoints da API
 
-A documentação interativa da API está disponível em **http://localhost:8000/docs** (Swagger UI).
+Documentação interativa: **http://localhost:8000/docs**
 
-### Agendamentos (`/api/appointments`)
-
-| Método   | Rota                            | Descrição                        |
-|:---------|:--------------------------------|:---------------------------------|
-| `GET`    | `/api/appointments`             | Lista todos os agendamentos      |
-| `POST`   | `/api/appointments`             | Cria um novo agendamento         |
-| `PUT`    | `/api/appointments/{key}/status`| Atualiza o status de um agendamento |
-| `DELETE` | `/api/appointments/{key}`       | Remove um agendamento            |
-
-### Salas (`/api/salas`)
-
-| Método   | Rota                 | Descrição                       |
-|:---------|:---------------------|:--------------------------------|
-| `GET`    | `/api/salas`         | Lista todas as salas            |
-| `POST`   | `/api/salas`         | Cadastra uma nova sala          |
-| `PUT`    | `/api/salas/{id}`    | Edita uma sala existente        |
-| `DELETE` | `/api/salas/{id}`    | Remove uma sala                 |
-| `POST`   | `/api/salas/bulk`    | Importação em massa (CSV/JSON)  |
-
-### Pacientes (`/api/pacientes`)
-
-| Método   | Rota                    | Descrição                       |
-|:---------|:------------------------|:--------------------------------|
-| `GET`    | `/api/pacientes`        | Lista todos os pacientes        |
-| `POST`   | `/api/pacientes`        | Cadastra um novo paciente       |
-| `PUT`    | `/api/pacientes/{id}`   | Edita um paciente               |
-| `DELETE` | `/api/pacientes/{id}`   | Remove um paciente              |
-| `POST`   | `/api/pacientes/bulk`   | Importação em massa (CSV/JSON)  |
-
-### Insumos (`/api/insumos`)
-
-| Método   | Rota                   | Descrição                       |
-|:---------|:-----------------------|:--------------------------------|
-| `GET`    | `/api/insumos`         | Lista todos os insumos          |
-| `POST`   | `/api/insumos`         | Cadastra um novo insumo         |
-| `PUT`    | `/api/insumos/{id}`    | Edita um insumo                 |
-| `DELETE` | `/api/insumos/{id}`    | Remove um insumo                |
-| `POST`   | `/api/insumos/bulk`    | Importação em massa (CSV/JSON)  |
-
-### Relatórios (`/api/relatorios`)
-
-| Método   | Rota                 | Descrição                        |
-|:---------|:---------------------|:---------------------------------|
-| `GET`    | `/api/relatorios`    | Retorna métricas agregadas       |
+| Método | Rota | Autenticação | Descrição |
+|--------|------|-------------|-----------|
+| `POST` | `/auth/login` | — | Login, retorna JWT |
+| `GET` | `/api/v2/appointments` | JWT | Lista agendamentos |
+| `POST` | `/api/v2/appointments` | JWT | Cria agendamento |
+| `PUT` | `/api/v2/appointments/{key}/status` | JWT | Atualiza status |
+| `DELETE` | `/api/v2/appointments/{key}` | JWT | Remove agendamento |
+| `GET` | `/api/v2/salas?page=1&page_size=10` | JWT | Lista salas (paginado) |
+| `POST` | `/api/v2/salas` | Admin | Cria sala |
+| `PUT` | `/api/v2/salas/{id}` | Admin | Edita sala |
+| `DELETE` | `/api/v2/salas/{id}` | Admin | Remove sala |
+| `GET` | `/api/v2/pacientes?page=1&nome=` | JWT | Lista pacientes (paginado + filtro) |
+| `POST` | `/api/v2/pacientes` | JWT | Cadastra paciente |
+| `GET` | `/api/v2/insumos?page=1` | JWT | Lista insumos (paginado) |
+| `GET` | `/api/v2/relatorios?data_inicio=&data_fim=&status=` | JWT | Dashboard + listagem filtrada |
+| `GET` | `/api/v2/usuarios?page=1` | Admin | Lista usuários |
+| `POST` | `/api/v2/usuarios` | Admin | Cria usuário |
+| `DELETE` | `/api/v2/usuarios/{id}` | Admin | Desativa usuário (soft delete) |
 
 ---
 
@@ -323,7 +501,7 @@ A documentação interativa da API está disponível em **http://localhost:8000/
 ### Pré-requisitos
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) instalado e rodando
-- Porta **3306** (MySQL), **8000** (API) e **5173** (Frontend) livres
+- Portas **3306**, **8000** e **5173** livres
 
 ### Passo a passo
 
@@ -332,56 +510,56 @@ A documentação interativa da API está disponível em **http://localhost:8000/
 git clone <url-do-repositorio>
 cd projeto-integrador-faculdade
 
-# 2. Suba todos os containers
-docker-compose up --build
+# 2. Configure as variáveis de ambiente
+cp .env.example .env
+# Edite o .env com suas configurações (ou use os valores padrão para desenvolvimento)
 
-# 3. Aguarde o MySQL inicializar e o Backend conectar (~30 segundos)
+# 3. Suba todos os containers
+docker compose up --build
+
+# 4. Aguarde o MySQL inicializar (~30 segundos)
 # Você verá: "Uvicorn running on http://0.0.0.0:8000"
 
-# 4. Acesse a aplicação
+# 5. Acesse
 # Frontend:  http://localhost:5173
 # API Docs:  http://localhost:8000/docs
-# MySQL:     localhost:3306 (user: root / pass: root)
-```
-
-### Parar os containers
-
-```bash
-docker-compose down
 ```
 
 ### Reiniciar com banco limpo
 
 ```bash
-docker-compose down -v   # Remove os volumes (dados do MySQL)
-docker-compose up --build
+docker compose down -v   # Remove volumes (apaga dados do MySQL)
+docker compose up --build
 ```
 
 ---
 
 ## 🔧 Variáveis de Ambiente
 
-| Variável         | Container  | Valor Padrão                                    |
-|:-----------------|:-----------|:-------------------------------------------------|
-| `DATABASE_URL`   | backend    | `mysql+pymysql://root:root@db:3306/agenda_quick` |
-| `VITE_API_URL`   | frontend   | `http://localhost:8000`                           |
-| `MYSQL_ROOT_PASSWORD` | db    | `root`                                           |
-| `MYSQL_DATABASE` | db         | `agenda_quick`                                   |
+Copie `.env.example` para `.env` e ajuste os valores. O `.env` já está no `.gitignore`.
+
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `DATABASE_URL` | URL de conexão SQLAlchemy | `mysql+pymysql://agenda_app:...@db:3306/agenda_quick` |
+| `JWT_SECRET_KEY` | Chave de assinatura JWT (gere com `secrets.token_hex(32)`) | — |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Expiração do token em minutos | `60` |
+| `ALLOWED_ORIGINS` | Origens CORS permitidas (separadas por vírgula) | `http://localhost:5173` |
+| `VITE_API_URL` | URL da API para o frontend | `http://localhost:8000` |
+| `MYSQL_ROOT_PASSWORD` | Senha root do MySQL | — |
 
 ---
 
-## 📸 Screenshots
+## 👤 Usuários de Teste
 
-> Acesse `http://localhost:5173` após subir os containers para visualizar a interface completa.
+Após subir o banco com o script DDL, os seguintes usuários estão disponíveis:
 
-| Tela                  | Descrição                                                |
-|:----------------------|:---------------------------------------------------------|
-| **Login**             | Seleção de perfil médico com avatar e nome               |
-| **Agenda (Calendário)**| Grade semanal com os agendamentos do dia, hora e sala   |
-| **Salas**             | Tabela CRUD com checkboxes, filtros e ações em lote      |
-| **Pacientes**         | Cadastro completo com CPF e telefone                     |
-| **Insumos**           | Controle de estoque com quantidade e unidade de medida   |
-| **Relatórios**        | Dashboard com cards de métricas agregadas                |
+| Nome | E-mail | Senha | Tipo |
+|------|--------|-------|------|
+| Admin Sistema | `admin@agendaquick.com` | `admin123` | administrador |
+| Dr. Carlos Mendes | `carlos.mendes@agendaquick.com` | `medico123` | medico |
+| Enf. Juliana Costa | `juliana.costa@agendaquick.com` | `enfermeiro123` | enfermeiro |
+
+> Senhas armazenadas com hash Bcrypt — nunca em texto plano.
 
 ---
 
@@ -397,8 +575,8 @@ Sala 11,12
 ### Pacientes
 ```csv
 nome,cpf,telefone
-João da Silva,123.456.789-00,(62) 99999-0000
-Maria Santos,987.654.321-00,(62) 98888-1111
+João da Silva,12345678900,(62) 99999-0000
+Maria Santos,98765432100,(62) 98888-1111
 ```
 
 ### Insumos
@@ -412,7 +590,7 @@ Soro Fisiológico 1L,2,frasco,200
 
 ## 👥 Autores
 
-Desenvolvido como **Projeto Integrador** — FPM ( Faculdade de Principios Militares ).
+Desenvolvido como **Projeto Integrador** — FPM (Faculdade de Princípios Militares) · 2025.
 
 ---
 
