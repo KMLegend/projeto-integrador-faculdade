@@ -40,7 +40,8 @@ class PacienteService:
         )
         self._db.add(paciente)
         self._db.commit()
-        return {"status": "success"}
+        self._db.refresh(paciente)
+        return PacienteSchema.model_validate(paciente).model_dump()
 
     def atualizar(self, paciente_id: int, dados: PacienteUpdate) -> dict:
         paciente = self._buscar_por_id(paciente_id)

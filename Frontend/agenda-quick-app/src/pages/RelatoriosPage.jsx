@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { API_BASE } from '../api/client';
 
-const API = 'http://localhost:8000/api/v2/relatorios';
+const API = `${API_BASE}/api/v2/relatorios`;
 
 const STATUS_LABELS = {
   agendado: 'Agendado',

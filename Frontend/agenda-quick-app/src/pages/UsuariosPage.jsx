@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_BASE } from '../api/client';
 import '../components/TableComponents.css';
 
 export default function UsuariosPage({ onToast, token }) {
@@ -8,18 +9,21 @@ export default function UsuariosPage({ onToast, token }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUsuario, setEditingUsuario] = useState(null);
   const [userType, setUserType] = useState('tecnico');
+  const [searchNome, setSearchNome] = useState('');
 
-  const fetchUsuarios = () => {
-    fetch('http://localhost:8000/api/v2/usuarios', {
+  const fetchUsuarios = (nome = searchNome) => {
+    const params = new URLSearchParams({ page: 1, page_size: 50 });
+    if (nome) params.append('nome', nome);
+    fetch(`${API_BASE}/api/v2/usuarios?${params}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
-      .then(data => setUsuarios(data))
+      .then(data => setUsuarios(data.items ?? []))
       .catch(err => onToast('Erro ao carregar usuários', 'error'));
   };
 
   const fetchFiliais = () => {
-    fetch('http://localhost:8000/api/v2/filiais', {
+    fetch(`${API_BASE}/api/v2/filiais`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -63,8 +67,8 @@ export default function UsuariosPage({ onToast, token }) {
 
     const method = editingUsuario ? 'PUT' : 'POST';
     const url = editingUsuario 
-      ? `http://localhost:8000/api/v2/usuarios/${editingUsuario.id}`
-      : `http://localhost:8000/api/v2/usuarios`;
+      ? `${API_BASE}/api/v2/usuarios/${editingUsuario.id}`
+      : `${API_BASE}/api/v2/usuarios`;
 
     try {
       const resp = await fetch(url, {
@@ -90,7 +94,7 @@ export default function UsuariosPage({ onToast, token }) {
   const handleDelete = async () => {
     try {
         for (let id of selectedIds) {
-            await fetch(`http://localhost:8000/api/v2/usuarios/${id}`, { 
+            await fetch(`${API_BASE}/api/v2/usuarios/${id}`, { 
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -127,7 +131,13 @@ export default function UsuariosPage({ onToast, token }) {
             <span className="saas-badge">{usuarios.length}</span>
         </div>
         <div className="saas-actions">
-            <input type="text" className="saas-search" placeholder="Filtre usuários..." />
+            <input 
+              type="text" 
+              className="saas-search" 
+              placeholder="Filtre usuários..." 
+              value={searchNome}
+              onChange={e => { setSearchNome(e.target.value); fetchUsuarios(e.target.value); }}
+            />
             <button className="saas-btn" onClick={openNew}>+ Novo Usuário</button>
         </div>
       </div>
@@ -184,7 +194,7 @@ export default function UsuariosPage({ onToast, token }) {
       {selectedIds.size > 0 && (
           <div className="floating-action-bar">
               <span className="fab-count">{selectedIds.size}</span>
-              <span>items selecionados</span>
+              <span>itens selecionados</span>
               <div className="fab-divider"></div>
               {selectedIds.size === 1 && (
                 <button className="fab-btn" onClick={openEdit}>✎ Editar</button>

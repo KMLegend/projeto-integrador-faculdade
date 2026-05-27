@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { API_BASE } from '../api/client';
 import '../components/TableComponents.css';
 
 export default function SalasPage({ onToast, token }) {
@@ -6,15 +7,18 @@ export default function SalasPage({ onToast, token }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSala, setEditingSala] = useState(null);
+  const [searchNome, setSearchNome] = useState('');
   
   const fileInputRef = useRef(null);
 
-  const fetchSalas = () => {
-    fetch('http://localhost:8000/api/v2/salas', {
+  const fetchSalas = (nome = searchNome) => {
+    const params = new URLSearchParams({ page: 1, page_size: 50 });
+    if (nome) params.append('nome', nome);
+    fetch(`${API_BASE}/api/v2/salas?${params}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
-      .then(data => setSalas(data))
+      .then(data => setSalas(data.items ?? []))
       .catch(err => onToast('Erro ao carregar salas', 'error'));
   };
 
@@ -43,8 +47,8 @@ export default function SalasPage({ onToast, token }) {
 
     const method = editingSala ? 'PUT' : 'POST';
     const url = editingSala 
-      ? `http://localhost:8000/api/v2/salas/${editingSala.id}`
-      : `http://localhost:8000/api/v2/salas`;
+      ? `${API_BASE}/api/v2/salas/${editingSala.id}`
+      : `${API_BASE}/api/v2/salas`;
 
     try {
       const resp = await fetch(url, {
@@ -69,7 +73,7 @@ export default function SalasPage({ onToast, token }) {
   const handleDelete = async () => {
     try {
         for (let id of selectedIds) {
-            await fetch(`http://localhost:8000/api/v2/salas/${id}`, { 
+            await fetch(`${API_BASE}/api/v2/salas/${id}`, { 
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -111,7 +115,7 @@ export default function SalasPage({ onToast, token }) {
              });
              if(parsed[0].nome && parsed[0].nome.toLowerCase() === 'nome') parsed.shift();
 
-             const resp = await fetch('http://localhost:8000/api/v2/salas/bulk', {
+             const resp = await fetch(`${API_BASE}/api/v2/salas/bulk`, {
                  method: 'POST',
                  headers: { 
                      'Content-Type': 'application/json',
@@ -139,10 +143,16 @@ export default function SalasPage({ onToast, token }) {
             <span className="saas-badge">{salas.length}</span>
         </div>
         <div className="saas-actions">
-            <input type="text" className="saas-search" placeholder="Filtre salas..." />
+            <input 
+              type="text" 
+              className="saas-search" 
+              placeholder="Filtre salas..." 
+              value={searchNome}
+              onChange={e => { setSearchNome(e.target.value); fetchSalas(e.target.value); }}
+            />
             <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept=".csv" onChange={handleFileUpload} />
             <button className="saas-btn saas-btn-outline" onClick={() => fileInputRef.current.click()}>📄 Upload CSV</button>
-            <button className="saas-btn" onClick={openNew}>+ Nova sala</button>
+            <button className="saas-btn" onClick={openNew}>+ Nova Sala</button>
         </div>
       </div>
       
@@ -189,12 +199,12 @@ export default function SalasPage({ onToast, token }) {
       {selectedIds.size > 0 && (
           <div className="floating-action-bar">
               <span className="fab-count">{selectedIds.size}</span>
-              <span>items selected</span>
+              <span>itens selecionados</span>
               <div className="fab-divider"></div>
               {selectedIds.size === 1 && (
-                <button className="fab-btn" onClick={openEdit}>✎ Edit</button>
+                <button className="fab-btn" onClick={openEdit}>✎ Editar</button>
               )}
-              <button className="fab-btn danger" onClick={handleDelete}>🗑 Delete</button>
+              <button className="fab-btn danger" onClick={handleDelete}>🗑 Excluir</button>
           </div>
       )}
 
@@ -202,7 +212,7 @@ export default function SalasPage({ onToast, token }) {
           <div className="modal-overlay">
               <div className="modal-content">
                   <div className="modal-header">
-                      {editingSala ? 'Editar Sala' : 'New Sala'}
+                      {editingSala ? 'Editar Sala' : 'Nova Sala'}
                       <button onClick={() => setIsModalOpen(false)} style={{ background:'transparent', border:'none', fontSize:'1.2rem', cursor:'pointer' }}>×</button>
                   </div>
                   <form onSubmit={handleSave}>
@@ -222,7 +232,7 @@ export default function SalasPage({ onToast, token }) {
                       </div>
                       <div className="modal-footer">
                           <button type="button" className="saas-btn saas-btn-outline" onClick={() => setIsModalOpen(false)}>Cancelar</button>
-                          <button type="submit" className="saas-btn">Submit</button>
+                          <button type="submit" className="saas-btn">Salvar</button>
                       </div>
                   </form>
               </div>

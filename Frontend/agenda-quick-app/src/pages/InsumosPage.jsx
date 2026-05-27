@@ -1,24 +1,40 @@
 import { useState, useEffect, useRef } from 'react';
+import { API_BASE } from '../api/client';
 import '../components/TableComponents.css';
 
 export default function InsumosPage({ onToast, token }) {
   const [insumos, setInsumos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingInsumo, setEditingInsumo] = useState(null);
+  const [searchNome, setSearchNome] = useState('');
   
   const fileInputRef = useRef(null);
 
-  const fetchInsumos = () => {
-    fetch('http://localhost:8000/api/v2/insumos', {
+  const fetchInsumos = (nome = searchNome) => {
+    const params = new URLSearchParams({ page: 1, page_size: 50 });
+    if (nome) params.append('nome', nome);
+    fetch(`${API_BASE}/api/v2/insumos?${params}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
-      .then(data => setInsumos(data))
+      .then(data => setInsumos(data.items ?? []))
       .catch(err => onToast('Erro ao carregar insumos', 'error'));
   };
 
   useEffect(() => { fetchInsumos(); }, []);
+
+  useEffect(() => {
+    if (token) {
+      fetch(`${API_BASE}/api/v2/insumos/categorias`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(data => setCategorias(data))
+        .catch(err => console.error('Erro ao carregar categorias:', err));
+    }
+  }, [token]);
 
   const toggleSelect = (id) => {
     const newSet = new Set(selectedIds);
@@ -45,8 +61,8 @@ export default function InsumosPage({ onToast, token }) {
 
     const method = editingInsumo ? 'PUT' : 'POST';
     const url = editingInsumo 
-      ? `http://localhost:8000/api/v2/insumos/${editingInsumo.id}`
-      : `http://localhost:8000/api/v2/insumos`;
+      ? `${API_BASE}/api/v2/insumos/${editingInsumo.id}`
+      : `${API_BASE}/api/v2/insumos`;
 
     try {
       const resp = await fetch(url, {
@@ -71,7 +87,7 @@ export default function InsumosPage({ onToast, token }) {
   const handleDelete = async () => {
     try {
         for (let id of selectedIds) {
-            await fetch(`http://localhost:8000/api/v2/insumos/${id}`, { 
+            await fetch(`${API_BASE}/api/v2/insumos/${id}`, { 
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -119,7 +135,7 @@ export default function InsumosPage({ onToast, token }) {
              });
              if(parsed[0].nome && parsed[0].nome.toLowerCase() === 'nome') parsed.shift();
 
-             const resp = await fetch('http://localhost:8000/api/v2/insumos/bulk', {
+             const resp = await fetch(`${API_BASE}/api/v2/insumos/bulk`, {
                  method: 'POST',
                  headers: { 
                      'Content-Type': 'application/json',
@@ -143,14 +159,20 @@ export default function InsumosPage({ onToast, token }) {
     <div className="saas-container">
       <div className="saas-header">
         <div className="saas-title-group">
-            <h2 className="saas-title">Insumos Orders</h2>
+            <h2 className="saas-title">Insumos</h2>
             <span className="saas-badge">{insumos.length}</span>
         </div>
         <div className="saas-actions">
-            <input type="text" className="saas-search" placeholder="Filtre insumos..." />
+            <input 
+              type="text" 
+              className="saas-search" 
+              placeholder="Filtre insumos..." 
+              value={searchNome}
+              onChange={e => { setSearchNome(e.target.value); fetchInsumos(e.target.value); }}
+            />
             <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept=".csv" onChange={handleFileUpload} />
             <button className="saas-btn saas-btn-outline" onClick={() => fileInputRef.current.click()}>📄 Upload CSV</button>
-            <button className="saas-btn" onClick={openNew}>+ New Insumo</button>
+            <button className="saas-btn" onClick={openNew}>+ Novo Insumo</button>
         </div>
       </div>
       
@@ -199,12 +221,12 @@ export default function InsumosPage({ onToast, token }) {
       {selectedIds.size > 0 && (
           <div className="floating-action-bar">
               <span className="fab-count">{selectedIds.size}</span>
-              <span>items selected</span>
+              <span>itens selecionados</span>
               <div className="fab-divider"></div>
               {selectedIds.size === 1 && (
-                <button className="fab-btn" onClick={openEdit}>✎ Edit</button>
+                <button className="fab-btn" onClick={openEdit}>✎ Editar</button>
               )}
-              <button className="fab-btn danger" onClick={handleDelete}>🗑 Delete</button>
+              <button className="fab-btn danger" onClick={handleDelete}>🗑 Excluir</button>
           </div>
       )}
 
@@ -212,7 +234,7 @@ export default function InsumosPage({ onToast, token }) {
           <div className="modal-overlay">
               <div className="modal-content">
                   <div className="modal-header">
-                      {editingInsumo ? 'Editar Insumo' : 'New Insumo'}
+                      {editingInsumo ? 'Editar Insumo' : 'Novo Insumo'}
                       <button onClick={() => setIsModalOpen(false)} style={{ background:'transparent', border:'none', fontSize:'1.2rem', cursor:'pointer' }}>×</button>
                   </div>
                   <form onSubmit={handleSave}>
@@ -226,8 +248,12 @@ export default function InsumosPage({ onToast, token }) {
                               <input name="quantidade" type="number" defaultValue={editingInsumo?.quantidade || 0} />
                           </div>
                           <div className="form-group">
-                              <label>Categoria (ID)</label>
-                              <input name="categoria_id" type="number" defaultValue={editingInsumo?.categoria_id || 1} />
+                              <label>Categoria</label>
+                              <select name="categoria_id" className="saas-select" defaultValue={editingInsumo?.categoria_id || (categorias[0]?.id || 1)}>
+                                  {categorias.map(cat => (
+                                      <option key={cat.id} value={cat.id}>{cat.nome}</option>
+                                  ))}
+                              </select>
                           </div>
                           <div className="form-group">
                               <label>Unidade de Medida (ex: CX, L, UN)</label>
@@ -240,7 +266,7 @@ export default function InsumosPage({ onToast, token }) {
                       </div>
                       <div className="modal-footer">
                           <button type="button" className="saas-btn saas-btn-outline" onClick={() => setIsModalOpen(false)}>Cancelar</button>
-                          <button type="submit" className="saas-btn">Submit</button>
+                          <button type="submit" className="saas-btn">Salvar</button>
                       </div>
                   </form>
               </div>

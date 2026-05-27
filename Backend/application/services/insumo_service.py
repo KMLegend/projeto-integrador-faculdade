@@ -41,7 +41,8 @@ class InsumoService:
         )
         self._db.add(insumo)
         self._db.commit()
-        return {"status": "success"}
+        self._db.refresh(insumo)
+        return InsumoSchema.model_validate(insumo).model_dump()
 
     def atualizar(self, insumo_id: int, dados: InsumoUpdate) -> dict:
         insumo = self._buscar_por_id(insumo_id)

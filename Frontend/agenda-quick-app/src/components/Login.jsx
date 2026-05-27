@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE } from '../api/client';
 import './Login.css';
 
 /**
@@ -26,7 +27,7 @@ export default function Login({ onLogin }) {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/auth/login', {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -59,12 +60,7 @@ export default function Login({ onLogin }) {
   }
 
   function handleSSO() {
-    // Simulação de SSO (em produção: redirect para OAuth2/SAML)
-    onLogin({
-      name: 'Dra. Ana Silva',
-      role: 'Cirurgiã Chefe',
-      email: 'ana.silva@hospital.com',
-    });
+    triggerError('O login via SSO Corporativo não está disponível no ambiente local.');
   }
 
   function triggerError(msg) {

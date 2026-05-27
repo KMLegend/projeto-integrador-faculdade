@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from core.database import get_db
 from core.deps import get_current_user, require_admin
-from infrastructure.models import Usuario
+from infrastructure.models import Usuario, CategoriaInsumo
 from presentation.schemas import InsumoCreate, InsumoUpdate, InsumoSchema, PaginatedResponse
 from application.services.insumo_service import InsumoService
 
@@ -30,6 +30,12 @@ def listar_insumos(
     service: InsumoService = Depends(get_service),
 ):
     return service.listar(page, page_size, nome)
+
+
+@router.get("/categorias")
+def listar_categorias(db: Session = Depends(get_db)):
+    categorias = db.query(CategoriaInsumo).all()
+    return [{"id": c.id, "nome": c.nome} for c in categorias]
 
 
 @router.get("/all", response_model=List[InsumoSchema])

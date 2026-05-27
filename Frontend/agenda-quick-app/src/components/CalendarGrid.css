@@ -86,3 +86,146 @@
 .appt-client  { font-size: 10px; color: var(--muted); }
 .appt-time    { font-size: 9px; color: var(--muted); margin-top: auto; }
 .appt.search-dim { opacity: 0.2; }
+
+/* ── Visão Mensal ── */
+.month-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  min-width: 800px;
+}
+.month-header-cell {
+  padding: 12px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 11px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.month-day-cell {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  min-height: 120px;
+  padding: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.month-day-cell:hover {
+  background: rgba(79,124,255,0.03);
+}
+.month-day-cell.other-month {
+  opacity: 0.35;
+}
+.month-day-cell.today-cell {
+  background: rgba(79,124,255,0.05);
+}
+.month-day-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  align-self: flex-end;
+}
+.month-day-cell.today-cell .month-day-num {
+  background: var(--accent);
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mini-appts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+  overflow: hidden;
+}
+.mini-appt {
+  font-size: 10px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.mini-appt:hover {
+  filter: brightness(1.15);
+}
+.mini-appt.green { background: var(--green-bg); border-left: 2px solid var(--green); color: var(--green); }
+.mini-appt.yellow { background: var(--yellow-bg); border-left: 2px solid var(--yellow); color: var(--yellow); }
+.mini-appt.blue { background: var(--blue-bg); border-left: 2px solid var(--blue); color: var(--blue); }
+.mini-appt.gray { background: var(--gray-bg); border-left: 2px solid #4b5563; color: #9ca3af; }
+.mini-appt-time {
+  font-weight: 600;
+}
+
+/* ── Visão Anual ── */
+.annual-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  min-width: 600px;
+}
+.month-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.month-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+.month-card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+.month-card-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11px;
+}
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--muted);
+}
+.stat-row strong {
+  color: var(--text);
+}
+.status-pill {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 4px;
+}
+.status-pill.green { background: var(--green); }
+.status-pill.yellow { background: var(--yellow); }
+.status-pill.blue { background: var(--blue); }

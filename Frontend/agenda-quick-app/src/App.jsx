@@ -15,11 +15,13 @@ import InsumosPage from './pages/InsumosPage';
 import RelatoriosPage from './pages/RelatoriosPage';
 import UsuariosPage from './pages/UsuariosPage';
 
+import { API_BASE } from './api/client';
+
 export default function App() {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const API_URL = 'http://localhost:8000/api/v2/appointments';
+  const API_URL = `${API_BASE}/api/v2/appointments`;
 
   // ── Authentication State ──
   const [user, setUser] = useState(() => {
@@ -53,6 +55,12 @@ export default function App() {
     setToast(prev => ({ ...prev, visible: false }));
   }, []);
 
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  }, []);
+
   const fetchAppointments = useCallback(async () => {
     try {
       const response = await fetch(API_URL, {
@@ -60,6 +68,11 @@ export default function App() {
           'Authorization': `Bearer ${user?.token}`
         }
       });
+      if (response.status === 401) {
+        handleLogout();
+        showToast('⚠️ Sessão expirada. Faça login novamente.', 'error');
+        return;
+      }
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -69,7 +82,7 @@ export default function App() {
       console.error('Erro ao buscar agendamentos:', error);
       showToast('⚠️ Erro ao conectar ao servidor', 'error');
     }
-  }, [showToast]);
+  }, [user?.token, showToast, handleLogout]);
 
   useEffect(() => {
     if (user) {
@@ -105,6 +118,11 @@ export default function App() {
         },
         body: JSON.stringify({ key, data })
       });
+      if (resp.status === 401) {
+        handleLogout();
+        showToast('⚠️ Sessão expirada. Faça login novamente.', 'error');
+        return;
+      }
       if (resp.ok) {
         fetchAppointments();
         setModalOpen(false);
@@ -128,6 +146,11 @@ export default function App() {
         },
         body: JSON.stringify({ status: newStatus })
       });
+      if (resp.status === 401) {
+        handleLogout();
+        showToast('⚠️ Sessão expirada. Faça login novamente.', 'error');
+        return;
+      }
       if (resp.ok) {
         fetchAppointments();
         setPanelOpen(false);
@@ -146,6 +169,11 @@ export default function App() {
           'Authorization': `Bearer ${user?.token}`
         }
       });
+      if (resp.status === 401) {
+        handleLogout();
+        showToast('⚠️ Sessão expirada. Faça login novamente.', 'error');
+        return;
+      }
       if (resp.ok) {
         fetchAppointments();
         setPanelOpen(false);
@@ -154,12 +182,6 @@ export default function App() {
     } catch (e) {
       showToast('❌ Erro ao cancelar agendamento', 'error');
     }
-  }
-
-  function handleLogout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
   }
 
   if (!user) {
@@ -221,6 +243,7 @@ export default function App() {
             onSave={handleSaveAppointment}
             onClose={() => setModalOpen(false)}
             onToast={showToast}
+            token={user?.token}
           />
 
           <DetailPanel

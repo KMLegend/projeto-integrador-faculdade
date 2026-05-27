@@ -2,7 +2,7 @@
 Rotas de Salas — apenas orquestracao HTTP.
 Toda regra de negocio esta em SalaService.
 """
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
@@ -27,9 +27,10 @@ def get_service(db: Session = Depends(get_db)) -> SalaService:
 def listar_salas(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
+    nome: Optional[str] = Query(None),
     service: SalaService = Depends(get_service),
 ):
-    return service.listar(page, page_size)
+    return service.listar(page, page_size, nome)
 
 
 @router.get("/all", response_model=List[SalaSchema])

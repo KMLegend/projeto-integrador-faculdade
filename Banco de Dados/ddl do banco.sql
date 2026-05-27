@@ -498,12 +498,12 @@ LOCK TABLES `usuario` WRITE;
 /*!40000 ALTER TABLE `usuario` DISABLE KEYS */;
 -- Senha padrao '123456' em bcrypt: $2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/ZfWqI2eF.3OaZ5/XW
 INSERT INTO `usuario` VALUES 
-(1,1,'Dr. Ricardo Alves','ricardo@hospital.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.','CRM-GO-12345','medico',NULL,1,'2026-04-11 00:57:54'),
-(2,1,'Dra. Fernanda Lima','fernanda@hospital.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.','CRM-GO-67890','medico',NULL,1,'2026-04-11 00:57:54'),
-(3,1,'Enf. Carla Souza','carla@hospital.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.',NULL,'enfermeiro',NULL,1,'2026-04-11 00:57:54'),
-(4,1,'Admin Joao Silva','joao@hospital.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.',NULL,'administrador',NULL,1,'2026-04-11 00:57:54'),
-(5,2,'Dr. Paulo Mendes','paulo@clinica.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.','CRM-GO-11111','medico',NULL,1,'2026-04-11 00:57:54'),
-(6,2,'Enf. Ana Rodrigues','ana@clinica.com','$2b$12$F8JqZj26cFQRTmHpE/ecROYRFJRFRzjAWG3gn5r1Rpq2VMt6L/Al.',NULL,'enfermeiro',NULL,1,'2026-04-11 00:57:54');
+(1,1,'Dr. Carlos Mendes','carlos.mendes@agendaquick.com','$2b$12$vXL6OWiEGCeFMyDmLSBWXOxa.JwkEkEI3LS/LEylf.GJP6hvIsCwe','CRM-GO-12345','medico',NULL,1,'2026-04-11 00:57:54'),
+(2,1,'Dra. Fernanda Lima','fernanda@hospital.com','$2b$12$vXL6OWiEGCeFMyDmLSBWXOxa.JwkEkEI3LS/LEylf.GJP6hvIsCwe','CRM-GO-67890','medico',NULL,1,'2026-04-11 00:57:54'),
+(3,1,'Enf. Juliana Costa','juliana.costa@agendaquick.com','$2b$12$3eQj3/LYGGc06YKIctxOxerDB2B0wOOhCl2sE6sp6IDH3VIVI6I/C',NULL,'enfermeiro',NULL,1,'2026-04-11 00:57:54'),
+(4,1,'Admin Joao Silva','admin@agendaquick.com','$2b$12$SpfZeWXSrYKXEKjV1wwd5.KMzC8FiMaxHijHte.Ms8v79zZUk2WAO',NULL,'administrador',NULL,1,'2026-04-11 00:57:54'),
+(5,2,'Dr. Paulo Mendes','paulo@clinica.com','$2b$12$vXL6OWiEGCeFMyDmLSBWXOxa.JwkEkEI3LS/LEylf.GJP6hvIsCwe','CRM-GO-11111','medico',NULL,1,'2026-04-11 00:57:54'),
+(6,2,'Enf. Ana Rodrigues','ana@clinica.com','$2b$12$3eQj3/LYGGc06YKIctxOxerDB2B0wOOhCl2sE6sp6IDH3VIVI6I/C',NULL,'enfermeiro',NULL,1,'2026-04-11 00:57:54');
 /*!40000 ALTER TABLE `usuario` ENABLE KEYS */;
 UNLOCK TABLES;
 

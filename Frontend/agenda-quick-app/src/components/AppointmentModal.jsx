@@ -1,21 +1,13 @@
 import { useState, useEffect } from 'react';
 import { SERVICES, ROOMS, SURGEONS, STATUS_OPTIONS, HOURS, fmtDate } from '../data/appointments';
+import { API_BASE } from '../api/client';
 import './AppointmentModal.css';
 
 /**
  * AppointmentModal — Modal para criar novo agendamento cirúrgico.
  * Valida conflitos de sala+horário antes de salvar.
- *
- * Props:
- * - isOpen: boolean indicando se o modal está aberto
- * - initialDate: Date pré-selecionada
- * - initialTime: string de horário pré-selecionado
- * - appointments: objeto com agendamentos existentes
- * - onSave(appointmentData): callback ao salvar
- * - onClose(): callback ao fechar
- * - onToast(msg, type): callback para notificações
  */
-export default function AppointmentModal({ isOpen, initialDate, initialTime, appointments, onSave, onClose, onToast }) {
+export default function AppointmentModal({ isOpen, initialDate, initialTime, appointments, onSave, onClose, onToast, token }) {
   const [patient, setPatient] = useState('');
   const [service, setService] = useState(SERVICES[0]);
   const [room, setRoom] = useState(ROOMS[0]);
@@ -24,6 +16,46 @@ export default function AppointmentModal({ isOpen, initialDate, initialTime, app
   const [date, setDate] = useState('');
   const [time, setTime] = useState(HOURS[0]);
   const [notes, setNotes] = useState('');
+
+  const [roomsList, setRoomsList] = useState(ROOMS);
+  const [surgeonsList, setSurgeonsList] = useState(SURGEONS);
+
+  // Carrega salas e médicos dinamicamente da API ao abrir o modal
+  useEffect(() => {
+    if (isOpen && token) {
+      fetch(`${API_BASE}/api/v2/salas/all`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Erro ao buscar salas');
+          return res.json();
+        })
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            const names = data.map(s => s.nome);
+            setRoomsList(names);
+            setRoom(names[0]);
+          }
+        })
+        .catch(err => console.warn('Usando fallback estático para salas:', err));
+
+      fetch(`${API_BASE}/api/v2/usuarios/medicos`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Erro ao buscar cirurgiões');
+          return res.json();
+        })
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            const names = data.map(u => u.nome);
+            setSurgeonsList(names);
+            setSurgeon(names[0]);
+          }
+        })
+        .catch(err => console.warn('Usando fallback estático para cirurgiões:', err));
+    }
+  }, [isOpen, token]);
 
   // Atualiza campos quando o modal abre com data/hora pré-selecionada
   useEffect(() => {
@@ -63,7 +95,6 @@ export default function AppointmentModal({ isOpen, initialDate, initialTime, app
     // Limpa o formulário
     setPatient('');
     setNotes('');
-    onToast('✅ Cirurgia agendada com sucesso! Insumos reservados automaticamente.', 'success');
   }
 
   function handleOverlayClick(e) {
@@ -98,7 +129,7 @@ export default function AppointmentModal({ isOpen, initialDate, initialTime, app
             <div className="form-group">
               <label className="form-label">Sala Cirúrgica</label>
               <select className="form-select" value={room} onChange={e => setRoom(e.target.value)}>
-                {ROOMS.map(r => <option key={r}>{r}</option>)}
+                {roomsList.map(r => <option key={r}>{r}</option>)}
               </select>
             </div>
           </div>
@@ -107,7 +138,7 @@ export default function AppointmentModal({ isOpen, initialDate, initialTime, app
             <div className="form-group">
               <label className="form-label">Cirurgião Responsável</label>
               <select className="form-select" value={surgeon} onChange={e => setSurgeon(e.target.value)}>
-                {SURGEONS.map(s => <option key={s}>{s}</option>)}
+                {surgeonsList.map(s => <option key={s}>{s}</option>)}
               </select>
             </div>
             <div className="form-group">

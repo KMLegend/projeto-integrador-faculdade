@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, field_validator
-from typing import Optional, List, Generic, TypeVar
+from pydantic import BaseModel, field_validator
+from typing import Optional, List
 from datetime import datetime
 
 # ─────────────────────────────────────────────
@@ -29,8 +29,6 @@ class AppointmentResponse(BaseModel):
 # ─────────────────────────────────────────────
 # Paginação genérica
 # ─────────────────────────────────────────────
-
-T = TypeVar("T")
 
 class PaginatedResponse(BaseModel):
     items: list
@@ -70,7 +68,6 @@ class PacienteCreate(BaseModel):
     nome: str
     cpf: Optional[str] = None
     telefone: Optional[str] = None
-    email: Optional[str] = None
 
     @field_validator("cpf")
     @classmethod
@@ -78,21 +75,19 @@ class PacienteCreate(BaseModel):
         if v is not None:
             digits = "".join(c for c in v if c.isdigit())
             if len(digits) != 11:
-                raise ValueError("CPF deve conter 11 dígitos numéricos")
+                raise ValueError("CPF deve conter 11 digitos numericos")
         return v
 
 class PacienteUpdate(BaseModel):
     nome: Optional[str] = None
     cpf: Optional[str] = None
     telefone: Optional[str] = None
-    email: Optional[str] = None
 
 class PacienteSchema(BaseModel):
     id: Optional[int] = None
     nome: str
     cpf: Optional[str] = None
     telefone: Optional[str] = None
-    email: Optional[str] = None
 
     class Config:
         from_attributes = True

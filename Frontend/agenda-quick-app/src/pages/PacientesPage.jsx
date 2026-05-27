@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { API_BASE } from '../api/client';
 import '../components/TableComponents.css';
 
 export default function PacientesPage({ onToast, token }) {
@@ -6,15 +7,18 @@ export default function PacientesPage({ onToast, token }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPaciente, setEditingPaciente] = useState(null);
+  const [searchNome, setSearchNome] = useState('');
   
   const fileInputRef = useRef(null);
 
-  const fetchPacientes = () => {
-    fetch('http://localhost:8000/api/v2/pacientes', {
+  const fetchPacientes = (nome = searchNome) => {
+    const params = new URLSearchParams({ page: 1, page_size: 50 });
+    if (nome) params.append('nome', nome);
+    fetch(`${API_BASE}/api/v2/pacientes?${params}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
-      .then(data => setPacientes(data))
+      .then(data => setPacientes(data.items ?? []))
       .catch(err => onToast('Erro ao carregar pacientes', 'error'));
   };
 
@@ -43,8 +47,8 @@ export default function PacientesPage({ onToast, token }) {
 
     const method = editingPaciente ? 'PUT' : 'POST';
     const url = editingPaciente 
-      ? `http://localhost:8000/api/v2/pacientes/${editingPaciente.id}`
-      : `http://localhost:8000/api/v2/pacientes`;
+      ? `${API_BASE}/api/v2/pacientes/${editingPaciente.id}`
+      : `${API_BASE}/api/v2/pacientes`;
 
     try {
       const resp = await fetch(url, {
@@ -69,7 +73,7 @@ export default function PacientesPage({ onToast, token }) {
   const handleDelete = async () => {
     try {
         for (let id of selectedIds) {
-            await fetch(`http://localhost:8000/api/v2/pacientes/${id}`, { 
+            await fetch(`${API_BASE}/api/v2/pacientes/${id}`, { 
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -111,7 +115,7 @@ export default function PacientesPage({ onToast, token }) {
              });
              if(parsed[0].nome && parsed[0].nome.toLowerCase() === 'nome') parsed.shift();
 
-             const resp = await fetch('http://localhost:8000/api/v2/pacientes/bulk', {
+             const resp = await fetch(`${API_BASE}/api/v2/pacientes/bulk`, {
                  method: 'POST',
                  headers: { 
                      'Content-Type': 'application/json',
@@ -139,7 +143,13 @@ export default function PacientesPage({ onToast, token }) {
             <span className="saas-badge">{pacientes.length}</span>
         </div>
         <div className="saas-actions">
-            <input type="text" className="saas-search" placeholder="Filtre pacientes..." />
+            <input 
+              type="text" 
+              className="saas-search" 
+              placeholder="Filtre pacientes..." 
+              value={searchNome}
+              onChange={e => { setSearchNome(e.target.value); fetchPacientes(e.target.value); }}
+            />
             <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept=".csv" onChange={handleFileUpload} />
             <button className="saas-btn saas-btn-outline" onClick={() => fileInputRef.current.click()}>📄 Upload CSV</button>
             <button className="saas-btn" onClick={openNew}>+ Novo Paciente</button>
@@ -156,7 +166,7 @@ export default function PacientesPage({ onToast, token }) {
                    checked={pacientes.length > 0 && selectedIds.size === pacientes.length} />
               </th>
               <th>Order #</th>
-              <th>Paciente Name</th>
+              <th>Nome do Paciente</th>
               <th>CPF / Docs</th>
               <th>Contato</th>
             </tr>
@@ -185,12 +195,12 @@ export default function PacientesPage({ onToast, token }) {
       {selectedIds.size > 0 && (
           <div className="floating-action-bar">
               <span className="fab-count">{selectedIds.size}</span>
-              <span>items selected</span>
+              <span>itens selecionados</span>
               <div className="fab-divider"></div>
               {selectedIds.size === 1 && (
-                <button className="fab-btn" onClick={openEdit}>✎ Edit</button>
+                <button className="fab-btn" onClick={openEdit}>✎ Editar</button>
               )}
-              <button className="fab-btn danger" onClick={handleDelete}>🗑 Delete</button>
+              <button className="fab-btn danger" onClick={handleDelete}>🗑 Excluir</button>
           </div>
       )}
 
@@ -198,7 +208,7 @@ export default function PacientesPage({ onToast, token }) {
           <div className="modal-overlay">
               <div className="modal-content">
                   <div className="modal-header">
-                      {editingPaciente ? 'Editar Paciente' : 'New Paciente'}
+                      {editingPaciente ? 'Editar Paciente' : 'Novo Paciente'}
                       <button onClick={() => setIsModalOpen(false)} style={{ background:'transparent', border:'none', fontSize:'1.2rem', cursor:'pointer' }}>×</button>
                   </div>
                   <form onSubmit={handleSave}>
@@ -218,7 +228,7 @@ export default function PacientesPage({ onToast, token }) {
                       </div>
                       <div className="modal-footer">
                           <button type="button" className="saas-btn saas-btn-outline" onClick={() => setIsModalOpen(false)}>Cancelar</button>
-                          <button type="submit" className="saas-btn">Submit</button>
+                          <button type="submit" className="saas-btn">Salvar</button>
                       </div>
                   </form>
               </div>

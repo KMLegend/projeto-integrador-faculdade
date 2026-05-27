@@ -5,6 +5,7 @@ Responsabilidade unica (SRP): centraliza toda logica de negocio
 relacionada a salas, mantendo as rotas como simples orquestradores HTTP.
 """
 from datetime import datetime
+from typing import Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
@@ -16,8 +17,10 @@ class SalaService:
     def __init__(self, db: Session):
         self._db = db
 
-    def listar(self, page: int, page_size: int) -> PaginatedResponse:
+    def listar(self, page: int, page_size: int, nome: Optional[str] = None) -> PaginatedResponse:
         query = self._db.query(Sala)
+        if nome:
+            query = query.filter(Sala.nome.ilike(f"%{nome}%"))
         total = query.count()
         items = query.offset((page - 1) * page_size).limit(page_size).all()
         return PaginatedResponse(
@@ -41,7 +44,8 @@ class SalaService:
         )
         self._db.add(sala)
         self._db.commit()
-        return {"status": "success", "message": "Sala criada com sucesso"}
+        self._db.refresh(sala)
+        return SalaSchema.model_validate(sala).model_dump()
 
     def atualizar(self, sala_id: int, dados: SalaUpdate) -> dict:
         sala = self._buscar_por_id(sala_id)

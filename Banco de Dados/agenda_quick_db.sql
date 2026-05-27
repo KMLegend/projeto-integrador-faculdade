@@ -70,6 +70,7 @@ CREATE TABLE usuario (
     filial_id INT          UNSIGNED NOT NULL,
     nome      VARCHAR(150) NOT NULL,
     email     VARCHAR(191) NOT NULL,
+    senha_hash VARCHAR(255)     NULL,
     crm       VARCHAR(20)      NULL,
     tipo      ENUM('administrador','medico','enfermeiro','tecnico') NOT NULL,
     sso_sub   VARCHAR(191)     NULL,
@@ -289,13 +290,13 @@ INSERT INTO horario_funcionamento (sala_id, dia_semana, abertura, fechamento) VA
     (3, 1, '06:00', '20:00'),
     (4, 1, '08:00', '16:00');
 
-INSERT INTO usuario (filial_id, nome, email, crm, tipo) VALUES
-    (1, 'Dr. Ricardo Alves',  'ricardo@hospital.com',  'CRM-GO-12345', 'medico'),
-    (1, 'Dra. Fernanda Lima', 'fernanda@hospital.com', 'CRM-GO-67890', 'medico'),
-    (1, 'Enf. Carla Souza',   'carla@hospital.com',    NULL,           'enfermeiro'),
-    (1, 'Admin Joao Silva',   'joao@hospital.com',     NULL,           'administrador'),
-    (2, 'Dr. Paulo Mendes',   'paulo@clinica.com',     'CRM-GO-11111', 'medico'),
-    (2, 'Enf. Ana Rodrigues', 'ana@clinica.com',       NULL,           'enfermeiro');
+INSERT INTO usuario (filial_id, nome, email, senha_hash, crm, tipo) VALUES
+    (1, 'Dr. Carlos Mendes',  'carlos.mendes@agendaquick.com', '$2b$12$vXL6OWiEGCeFMyDmLSBWXOxa.JwkEkEI3LS/LEylf.GJP6hvIsCwe', 'CRM-GO-12345', 'medico'),
+    (1, 'Dra. Fernanda Lima', 'fernanda@hospital.com',         '$2b$12$vXL6OWiEGCeFMyDmLSBWXOxa.JwkEkEI3LS/LEylf.GJP6hvIsCwe', 'CRM-GO-67890', 'medico'),
+    (1, 'Enf. Juliana Costa', 'juliana.costa@agendaquick.com', '$2b$12$3eQj3/LYGGc06YKIctxOxerDB2B0wOOhCl2sE6sp6IDH3VIVI6I/C', NULL,           'enfermeiro'),
+    (1, 'Admin Joao Silva',   'admin@agendaquick.com',         '$2b$12$SpfZeWXSrYKXEKjV1wwd5.KMzC8FiMaxHijHte.Ms8v79zZUk2WAO', NULL,           'administrador'),
+    (2, 'Dr. Paulo Mendes',   'paulo@clinica.com',             '$2b$12$vXL6OWiEGCeFMyDmLSBWXOxa.JwkEkEI3LS/LEylf.GJP6hvIsCwe', 'CRM-GO-11111', 'medico'),
+    (2, 'Enf. Ana Rodrigues', 'ana@clinica.com',               '$2b$12$3eQj3/LYGGc06YKIctxOxerDB2B0wOOhCl2sE6sp6IDH3VIVI6I/C', NULL,           'enfermeiro');
 
 INSERT INTO grupo (filial_id, nome) VALUES
     (1, 'Medicos'),
